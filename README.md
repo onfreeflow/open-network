@@ -1,8 +1,6 @@
-openssl req -x509 -nodes -newkey rsa:2048 -keyout server.key -out server.crt -days 365 -config openssl-san.cnf
 
+### Basic
 ```js
-
-### Basic 
 import { EVSE, EVSEConnector } from "@ho2life/EVSE"
 
 new EVSE({
@@ -25,8 +23,11 @@ new EVSE({
   //default - centralSystemService: { host: "localhost", port: 80, path: "/"}
   transport: new Transport({ events: "BootNotification" })
 })
+```
 
 ### Multiple TLS Transport w/ Queue in Redis
+```js
+
 import { EVSE, EVSEConnector, Transport } from "@ho2life/EVSE"
 import { Transport } from "@ho2life/EVSE/OCPPTransport"
 import { EventQueue } from "@ho2life/EVSE/EventQueue"
@@ -68,8 +69,10 @@ new EVSE({
                             events : [ "BootNotification", "StatusNotification", "TransactionStop"  ]
                           })
 })
+```
 
 ### Comprehensive Breakdown
+```js
 import { EVSE, EVSEConnector, Transport } from "@ho2life/EVSE"
 import { Transport } from "@ho2life/EVSE/OCPPTransport"
 import { EventQueue } from "@ho2life/EVSE/EventQueue"
@@ -161,3 +164,5 @@ const evseThree = new EVSE({
   connectors  : [ connectorA, connectorB ]
 })
 ```
+
+> openssl req -x509 -nodes -newkey rsa:2048 -keyout server.key -out server.crt -days 365 -config openssl-san.cnf
