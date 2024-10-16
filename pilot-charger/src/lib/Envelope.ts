@@ -1,7 +1,7 @@
 
-import { randomBytes } from "crypto";
+import { randomBytes } from "crypto"
 import { v4 as uuidv4 } from "uuid"
-import ErrorMalformedMessage from "./utils"
+import { ErrorMalformedMessage } from "./utils"
 
 const createWebSocketFrame = message => {
   const payload = Buffer.from(message, "utf8");

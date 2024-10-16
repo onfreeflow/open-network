@@ -1,12 +1,13 @@
 "use strict"
 
-import https from "https"
-import neo4j from "neo4j-driver"
-import { readFileSync, writeFileSync } from "fs"
-import { RPCServer, createRPCError } from "ocpp-rpc"
-import { EventEmitter } from "events"
-import { v4 as uuidv4 } from "uuid"
 import { exec } from "child_process"
+import { EventEmitter } from "events"
+import { readFileSync, writeFileSync, unlink } from "fs"
+import https from "https"
+
+import neo4j from "neo4j-driver"
+import { RPCServer, createRPCError } from "ocpp-rpc"
+import { v4 as uuidv4 } from "uuid"
 
 (async ()=>{
     const serviceUUID = uuidv4()
@@ -22,7 +23,7 @@ import { exec } from "child_process"
         const tlsClient = handshake.request.client;
 
         if (!tlsClient) {
-            return reject();
+            return reject(0,"tls Failure");
         }
         //dblookup, identity(evse_SN, evse_pass->evse_pass_hash)
 
@@ -104,12 +105,17 @@ import { exec } from "child_process"
     writeFileSync(
         "./openssl-san.cnf",
         readFileSync( "./openssl-san.cnf.template", "utf-8" )
-            .replace( "{{CN}}", process.env.HOSTNAME )
-            .replace( "{{IP}}", process.env.IP )
+            .replaceAll( "{{CN}}", process.env.HOSTNAME )
+            .replaceAll( "{{IP}}", process.env.IP )
     )
-    await new Promise( async (resolve, reject) => {
+    await new Promise<void>( async (resolve, reject) => {
         try {
-            exec("openssl req -x509 -nodes -newkey rsa:2048 -keyout ./server.key -out ./server.crt -days 365 -config ./openssl-san.cnf", resolve )
+            exec("openssl req -x509 -nodes -newkey rsa:2048 -keyout ./server.key -out ./server.crt -days 365 -config ./openssl-san.cnf", () => {
+                unlink("./openssl-san.cnf", err => {
+                    if ( err ) throw err
+                    resolve()
+                })
+            })
         } catch ( e ){
             reject(e)
         }
