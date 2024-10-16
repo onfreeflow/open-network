@@ -1,0 +1,106 @@
+services:
+  # charger-one:
+  #   build:
+  #     dockerfile: ./ocppsim.Dockerfile
+  #   ports:
+  #    - "8000:8000"
+  #   extra_hosts:
+  #     - "nginx:172:20.0.5"
+  #   cpus: 0.75
+  #   networks:
+  #     - ezcharge
+
+  pilot-charger:
+    build:
+      args:
+        - EXPOSE_PORT=8080
+      context: ./
+      dockerfile: ./pilot-charger/Dockerfile
+    ports:
+     - "8080:8080"
+    environment:
+     - PORT=8080
+     - NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/nginx.crt
+     - HEARTBEAT_TIMEOUT=30000
+     - OCPP_HOST=nginx
+     - OCPP_PORT=8443
+     - OCPP_PATH=/evse/connect
+     - PROTOCOL=wss
+    volumes:
+     - ./pilot-charger:/usr/src/app
+    extra_hosts:
+      - "nginx:172.20.0.5"
+    networks:
+      ezcharge:
+        ipv4_address: 172.20.0.9
+
+  neo4j:
+    image: neo4j:5
+    ports:
+     - "7474:7474"
+     - "7473:7473"
+     - "7687:7687"
+    environment:
+     - NEO4J_AUTH=neo4j/password
+    volumes:
+     - .scripts/neo4j/import:/var/lib/neo4j/import
+    cpus: 1
+    restart: on-failure
+    networks:
+      - ezcharge
+    command: >
+      bash -c "
+        /startup/docker-entrypoint.sh neo4j &  # Start Neo4j with the default entrypoint script
+        sleep 20 &&  # Give Neo4j time to start
+        until echo 'MATCH (n) RETURN n LIMIT 1;' | cypher-shell -u neo4j -p password;
+        do echo 'Waiting for Neo4j to be ready...' && sleep 5;
+        done &&
+        cypher-shell -u neo4j -p password -f /var/lib/neo4j/import/import.cypher &&
+        neo4j stop &&  # Stop the background Neo4j instance
+        /startup/docker-entrypoint.sh neo4j
+      "
+
+  ocpp-service-1:
+    build:
+      args:
+        - EXPOSE_PORT=6907
+      context: ./ocpp
+    ports:
+      - "6907"
+    environment:
+     - PORT=6907
+     - IP=172.20.0.4
+     - HOSTNAME=ocpp-service-1
+    volumes:
+     - ./ocpp:/usr/src/app
+    restart: on-failure
+    depends_on:
+     - neo4j
+    networks:
+      ezcharge:
+        ipv4_address: 172.20.0.4
+
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "8443:8443"
+    environment:
+     - NEO4J_HOST=neo4j
+     - NEO4J_PORT=7474
+     - NEO4J_USERNAME=neo4j
+     - NEO4J_PASSWORD=password
+    depends_on:
+      - neo4j
+    volumes:
+      - ./nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
+    networks:
+      ezcharge:
+        ipv4_address: 172.20.0.5
+
+networks:
+  ezcharge:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
