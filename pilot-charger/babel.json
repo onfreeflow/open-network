@@ -11,6 +11,7 @@
     "@babel/preset-typescript"
   ],
   "plugins": [
+    [ "@babel/plugin-transform-typescript",{"allowDeclareFields" : true}],
     "@babel/plugin-transform-class-properties",
     "@babel/plugin-proposal-do-expressions",
     "@babel/plugin-proposal-export-default-from",
@@ -23,8 +24,7 @@
     "@babel/plugin-transform-private-methods",
     "@babel/plugin-proposal-throw-expressions",
     "@babel/plugin-transform-runtime",
-    [ "@babel/plugin-proposal-pipeline-operator", { "proposal": "fsharp" } ],
-    [ "tcomb", { "globals": [ { "Class": true } ] } ]
+    [ "@babel/plugin-proposal-pipeline-operator", { "proposal": "fsharp" } ]
   ],
   "ignore": [
     "node_modules/*",

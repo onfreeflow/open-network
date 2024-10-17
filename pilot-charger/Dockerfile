@@ -14,7 +14,7 @@ RUN chmod 644 /usr/local/share/ca-certificates/*.crt && \
 RUN mkdir /usr/src/app
 WORKDIR /usr/src/app
 
-ADD ./pilot-charger     /usr/src/app
+ADD ./pilot-charger /usr/src/app
 RUN npm i
 
 ENV NODE_ENV=local

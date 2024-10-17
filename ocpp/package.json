@@ -6,9 +6,11 @@
   "license": "ISC",
   "scripts": {
     "test": "mocha --exit --require ./node_modules/babel-core/register",
-    "build": "npx babel --config-file ./babel.json --out-dir ./build --source-maps --copy-files ./src",
-    "prestart": "npm run build; npx pm2 flush",
-    "start": "npx pm2 start --time --no-daemon ./build/index.js -i 1"
+    "build-legacy": "npx babel --config-file ./babel.json --out-dir ./build --source-maps --verbose --extensions '.js,.ts' ./src",
+    "prebuild": "rm -rf ./dist",
+    "build": "esbuild ./src/index.ts --bundle --outfile=dist/bundle.js --platform=node --sourcemap",
+    "prestart": "npm run build && npx pm2 flush",
+    "start": "npx pm2 start --time --no-daemon ./dist/bundle.js -i 1"
   },
   "engines": {
     "node": ">=22.9.0",
@@ -46,6 +48,7 @@
     "babel-preset-minify": "^0.5.2",
     "chai": "^5.1.1",
     "chai-as-promised": "^8.0.0",
+    "esbuild": "^0.24.0",
     "eslint": "^9.9.1",
     "eslint-webpack-plugin": "^4.2.0",
     "exports-loader": "^5.0.0",

@@ -1,9 +1,10 @@
 
 import { randomBytes } from "crypto"
 import { v4 as uuidv4 } from "uuid"
-import { ErrorMalformedMessage } from "./utils"
+import { ErrorMalformedMessage } from "../utils"
+import { IPayload, IEnvelope } from "./interfaces"
 
-const createWebSocketFrame = message => {
+const createWebSocketFrame = (message:string):Buffer => {
   const payload = Buffer.from(message, "utf8");
   const mask = randomBytes(4);
   const maskedPayload = Buffer.alloc(payload.length);
@@ -17,8 +18,8 @@ const createWebSocketFrame = message => {
   return Buffer.concat([frameHeader, maskedPayload]);
 }
 
-const formatOCPPMessage = ( method, payload = {} ) => {
-  const messageArr = [
+const formatOCPPMessage = ( method:string, payload:IPayload = {} ):Buffer => {
+  const messageArr:any = [
     2,
     Math.random().toString(36).substring(2, 15),
     method,
@@ -37,9 +38,11 @@ const formatOCPPMessage = ( method, payload = {} ) => {
   return messageArr |> JSON.stringify |> createWebSocketFrame
 }
 
-export default class Envelope {
-  id = uuidv4()
-  constructor( method, payload = {}  ){
+export default class Envelope implements IEnvelope {
+  id:string = uuidv4()
+  message:Buffer
+  
+  constructor( method:string, payload:IPayload = {} ) {
     this.message = formatOCPPMessage( method, payload )
   }
 }

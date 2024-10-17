@@ -26,8 +26,6 @@ services:
      - OCPP_PORT=8443
      - OCPP_PATH=/evse/connect
      - PROTOCOL=wss
-    volumes:
-     - ./pilot-charger:/usr/src/app
     extra_hosts:
       - "nginx:172.20.0.5"
     networks:
@@ -71,8 +69,6 @@ services:
      - PORT=6907
      - IP=172.20.0.4
      - HOSTNAME=ocpp-service-1
-    volumes:
-     - ./ocpp:/usr/src/app
     restart: on-failure
     depends_on:
      - neo4j
