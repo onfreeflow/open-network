@@ -35,7 +35,7 @@ const formatOCPPMessage = ( method:string, payload:IPayload = {} ):Buffer => {
   } catch ( e ) {
     console.error( e.message, e.cause )
   }
-  return messageArr |> JSON.stringify |> createWebSocketFrame
+  return createWebSocketFrame( JSON.stringify( messageArr ) )
 }
 
 export default class Envelope implements IEnvelope {

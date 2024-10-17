@@ -15,7 +15,7 @@ export class EventsQueue implements IEventsQueue{
   db:Database
   emitter:EventEmitter = new EventEmitter()
   events: EEvent | EEvent[]
-  constructor({ dbType, host, port , events }: IEventsQueueOptions) {
+  constructor({ dbType = EEventsQueueDBType.MEMORY, host, port , events }: IEventsQueueOptions) {
     this.events = events
     this.eventStream = this._eventGenerator();
     if ( !(this instanceof EventsQueue) ) {

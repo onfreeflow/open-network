@@ -4,6 +4,7 @@ import { Readable } from "fs"
 
 export interface IPayload {
   [key: string]: any;
+  timestamp: string;
 }
 export interface IEnvelope {
   id     : string;
@@ -45,16 +46,29 @@ export interface IFTPConfiguration {
   username?: string;
   password?: string;
 }
+
+export enum EReconnectStrategy {
+  "LINEAR"      = "linear",
+  "PROGRESSIVE" = "progressive",
+  "FIBONACCI"   = "fibonacci"
+}
+export interface IReconnectConfiguration {
+  strategy: EReconnectStrategy;
+  timeout : number;
+  attempts: number;
+}
+
 export interface ICentralSystemService {
-  type    : ETransportType;
-  host    ?: string;
-  port    ?: number;
-  path    ?: string;
-  protocol?: EWebSocketProtocol;
-  identity?: string;
-  password?: string;
-  tls     ?: ITLSConfiguration;
-  ftp     ?: IFTPConfiguration;
+  type     : ETransportType;
+  host     ?: string;
+  port     ?: number;
+  path     ?: string;
+  protocol ?: EWebSocketProtocol;
+  identity ?: string;
+  password ?: string;
+  tls      ?: ITLSConfiguration;
+  ftp      ?: IFTPConfiguration;
+  reconnect?: IReconnectConfiguration;
 }
 
 export interface ITransportOptions {
@@ -68,6 +82,7 @@ export interface ITransport {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
   sendMessage(method: string, payload: IPayload | undefined ): Promise<void>;
+  isConnected():boolean;
   onEvent(method: string, callback: (data: any) => void): void;
   offEvent(method: string): void;
 }

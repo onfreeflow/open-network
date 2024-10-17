@@ -4,8 +4,7 @@ import { EVSE } from "./lib/EVSE"
 import { EVSEConnector } from "./lib/EVSEConnector"
 import { EConnectorType, EChargingMode } from "./lib/EVSEConnector/interfaces"
 import { Transport } from "./lib/Transport/Transport"
-import { ETransportType, EEvent } from "./lib/Transport/interfaces"
-import { EventsQueue } from "./lib/Queue"
+import { ETransportType, EEvent, EReconnectStrategy } from "./lib/Transport/interfaces"
 import { EEventsQueueDBType } from "./lib/Queue/interfaces"
 
 const connectorOpts = {
@@ -34,10 +33,15 @@ new EVSE({
           cert   : [
             readFileSync( "/usr/local/share/ca-certificates/nginx.crt", "utf-8" )
           ]  
+        },
+        reconnect:{
+          strategy: EReconnectStrategy.LINEAR,
+          interval: 1000,
+          attempts: 10
         }
       },
       events: Object.values( EEvent )
     })
   ],
-  eventsQueue : new EventsQueue({ dbType: EEventsQueueDBType.MEMORY, events: Object.values( EEvent ) })
+  eventsQueue : { dbType: EEventsQueueDBType.MEMORY }
 })

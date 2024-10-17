@@ -7,8 +7,10 @@ import {
   ITransportOptions,
   EEvent,
   ETransportType,
+  EReconnectStrategy,
   EWebSocketProtocol
 } from "./interfaces"
+import Envelope from "./Envelope"
 import { Readable } from "fs"
 import { randomBytes } from "crypto"
 import { connect } from 'tls'
@@ -20,9 +22,16 @@ export class Transport implements ITransport {
     host: "localhost",
     port: 80,
     path: "/",
-    protocol: EWebSocketProtocol.WS
+    protocol: EWebSocketProtocol.WS,
+    reconnect: {
+      strategy: EReconnectStrategy.LINEAR,
+      timeout : 3000,
+      attempts: 10
+    }
   }
   #link
+  #linkError
+  #reconnectCount = 0
   constructor(options: ITransportOptions) {
     this.events = options.events ? options.events : this.events;
 
@@ -35,6 +44,10 @@ export class Transport implements ITransport {
       ftp: {
         ...this.centralSystemService.ftp,
         ...options.centralSystemService.ftp
+      },
+      reconnect: {
+        ...this.centralSystemService.reconnect,
+        ...options.centralSystemService.reconnect
       }
     }
 
@@ -63,6 +76,7 @@ export class Transport implements ITransport {
           `Sec-WebSocket-Version: 13`,
           "\r\n"
         ].join("\r\n"));
+        this.#linkError = undefined
         resolve()
       })
       
@@ -72,14 +86,20 @@ export class Transport implements ITransport {
       this.#link.on( "end", ( ...args ) => {
         console.log("END", ...args )
       })
-      this.#link.on( "close", ( ...args ) => {
+      this.#link.on( "close", async ( ...args ) => {
         console.log( "close", ...args )
-        setTimeout( async () => {
-          await this.reconnect()
-        }, 10000 )
+
+        if ( this.#linkError?.message?.includes( "connect EHOSTUNREACH" ) ){
+          this.#link = undefined
+          this.reconnect()
+          return
+        }
+        
+        reject()
       })
       this.#link.on( "error", ( err ) => {
-        console.error( err )
+        console.error( err.message );
+        this.#linkError = err
       })
     })
   }
@@ -89,12 +109,26 @@ export class Transport implements ITransport {
   }
 
   async reconnect(): Promise<void> {
+    // Implement strategy  
+    if ( this.#reconnectCount > this.centralSystemService.reconnect.attempts ){
+      throw "Max Reconnects"
+    }
+    this.#reconnectCount = this.#reconnectCount + 1
+    console.log( `Reconnect Attempt with strategy[${this.centralSystemService.reconnect.strategy}]: ${this.#reconnectCount} of ${this.centralSystemService.reconnect.attempts}`)
     await this.connect()
   }
+  resetRetries():void {
+    //clear resetniables (soft reset)
+  }
 
-  async sendMessage( method: string, payload: IPayload | undefined ): Promise<void> {
-    // wrap in envelope including undefined payload
-    // Implement send message logic here
+  isConnected(){
+    return !!this.#link
+  }
+  async sendMessage( method: string, payload?: IPayload ): Promise<void> {
+    if ( !this.#link ) {
+      throw `Cannot send message[ method: ${method}, payload: ${JSON.stringify(payload)}], not connected to Central System Service`
+    }
+    await this.#link.write( new Envelope( method, payload ) )
   }
 
   onEvent(event: string, callback: (data: any) => void): void {

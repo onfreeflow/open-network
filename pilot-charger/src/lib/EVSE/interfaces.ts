@@ -141,13 +141,13 @@ export interface IEVSEEventsQueue {
   port  ?: number
 }
 
-export interface IEVSE {
+export interface IEVSEProperties {
   connectors     : EVSEConnector[];
   voltage        : EVoltageLevel
   current        : ECurrentLevel
   powerType      : EPowerType
   meterValue     : number
-  id             : number
+  id             : number | string;
   vendorId       : string
   model          : string
   firmwareVersion: string
@@ -158,7 +158,24 @@ export interface IEVSE {
   transport      : Transport[]
   eventsQueue    : IEVSEEventsQueue
   configuration  : IEVSEConfiguration
+}
+
+export interface IEVSE extends IEVSEProperties {
   emit(method:string, payload?: IPayload ):void;
+}
+
+export interface IEVSEOptionsEventsQueue {
+  host  : string;
+  port  : number | string;
+  dbType: EEventsQueueDBType;
+}
+
+export interface IEVSEOptions {
+  id          : string | number;
+  serialNumber: string;
+  connectors ?: EVSEConnector[] | EVSEConnector;
+  transport  ?: Transport[]
+  eventsQueue?: Omit<IEVSEEventsQueue, "queue">
 }
 
 // Charging Rate Units

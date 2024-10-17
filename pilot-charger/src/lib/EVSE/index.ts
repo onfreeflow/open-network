@@ -11,6 +11,7 @@ import {
   IEVSE,
   IEVSEConfiguration,
   IEVSEEventsQueue,
+  IEVSEOptions,
   IEVSEManufacturerConfiguration,
 } from "./interfaces.ts"
 import { IPayload } from "../Transport/interfaces.ts"
@@ -29,10 +30,6 @@ const validateOptions = options => {
     case !options.id && typeof options.id !== 'number': throw SyntaxError( "EVSEBase Constructor: Options argument is missing required property(id)" );
     case !options.serialNumber                        : throw SyntaxError( "EVSEBase Constructor: Options argument is missing required property(serialNumber)" );
     case options.connectors.length < 1                : logger.warn( "Will not distribute power, no connectors registered")
-    case !options.centralSystemService                : logger.warn( "Will not report to central system service: [options.centralSystemService] not configured." ); break;
-    case !options.centralSystemService.host           : logger.warn( "Will not report to central system service: [options.centralSystemService.host] not configured." ); break;
-    case !options.centralSystemService.port           : logger.warn( "Will not report to central system service: [options.centralSystemService.port] not configured." ); break;
-    case !options.centralSystemService.path           : logger.warn( "May not report to central system service: [options.centralSystemService.path] not configured." ); break;
       default: break
   }
 }
@@ -74,15 +71,19 @@ export class EVSE implements IEVSE {
     }
   }
   
-  #link
-  constructor( options ){
+  constructor( options:IEVSEOptions ){
     validateOptions( options )
     this.id = options.id
     this.serialNumber = options.serialNumber
     this.connectors = options.connectors
     this.transport = typeof options.transport === 'object' ? options.transport : [ options.transport ]
     this.configuration = { ...this.configuration, ...options.configuration }
-    this.eventsQueue = { ...this.eventsQueue, ...options.eventsQueue }
+    this.eventsQueue = {
+      ...this.eventsQueue,
+      dbType: options.eventsQueue.dbType,
+      host  : options.eventsQueue.host,
+      port  : options.eventsQueue.port
+    }
 
     if ( !(this instanceof EVSE ) ) {
       return new EVSE( options )
@@ -98,24 +99,29 @@ export class EVSE implements IEVSE {
       return this
     })()
   }
-  emit( method:string, payload?: IPayload ):void{
+  async emit( method:string, payload?: IPayload ):Promise<void>{
+    let recieved = false
     try {
       for ( const transport of this.transport ) {
-        transport.sendMessage( method, payload )
+        if ( !transport.isConnected() ) continue
+        try {
+          await transport.sendMessage( method, payload )
+          recieved = true
+        } catch (e) {
+          console.error(e)
+        }
       }
+      if ( recieved === false ) throw "No available transport connection"
     } catch ( e ) {
       if ( this.eventsQueue.queue instanceof EventsQueue )
       this.eventsQueue.queue.enqueueEvent( method, payload )
     }
   }
   #startUp(){
-    if ( !this.#link ){
-      logger.warn( "Not Connected to Central System Service" )
-    }
     this.#boot()
     this.#heartbeatSetup()
   }
- async #setupEventsQueue(){
+  async #setupEventsQueue(){
     if ( !this.eventsQueue ){
       logger.warn( "ONLY USE FOR TESTING PURPOSES: Default Event Queue is only using ram. Power reset will result in data loss." )
     }
