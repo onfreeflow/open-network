@@ -28,6 +28,9 @@ services:
      - PROTOCOL=wss
     extra_hosts:
       - "nginx:172.20.0.5"
+      - "steve:172.20.0.21"
+    volumes:
+     - ./pilot-charger/src:/usr/src/app/src
     networks:
       ezcharge:
         ipv4_address: 172.20.0.9
@@ -42,7 +45,6 @@ services:
      - NEO4J_AUTH=neo4j/password
     volumes:
      - .scripts/neo4j/import:/var/lib/neo4j/import
-    cpus: 1
     restart: on-failure
     networks:
       - ezcharge
@@ -57,6 +59,37 @@ services:
         neo4j stop &&  # Stop the background Neo4j instance
         /startup/docker-entrypoint.sh neo4j
       "
+
+  mariadb:
+    image: mariadb:10.4.30
+    restart: unless-stopped
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: stevedb
+      MYSQL_USER: steve
+      MYSQL_PASSWORD: changeme
+    networks:
+      ezcharge:
+        ipv4_address: 172.20.0.23
+
+  steve:
+    restart: unless-stopped
+    build:
+      context: ./steve
+    volumes:
+      - ./steve:/code
+    ports:
+      - "8180:8180"
+      - "8444:8443"
+    depends_on:
+      - mariadb
+    extra_hosts:
+      - "mariadb:172.20.0.23"
+    networks:
+      ezcharge:
+        ipv4_address: 172.20.0.21
 
   ocpp-service-1:
     build:
@@ -100,3 +133,6 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16
+volumes:
+  db-data:
+    external: false

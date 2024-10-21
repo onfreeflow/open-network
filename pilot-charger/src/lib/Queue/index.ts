@@ -91,8 +91,8 @@ export class EventsQueue implements IEventsQueue{
       console.error( e )
     }
   }
-  async dequeueEvent():Promise<string>{
-    const event = await this.dequeue()
+  async dequeueEvent():Promise<{method:string,payload:IPayload}>{
+    const event = JSON.parse(await this.dequeue())
     try{
       this.emitter.emit( "EVENT_DEQUEUED", event )
     } catch ( e ){

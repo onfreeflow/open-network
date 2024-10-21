@@ -87,7 +87,6 @@ import { v4 as uuidv4 } from "uuid"
         client.handle(({method, params}) => {
             // This handler will be called if the incoming method cannot be handled elsewhere.
             console.log(`Server got ${method} from ${client.identity}:`, params);
-
             // throw an RPC error to inform the server that we don't understand the request.
             throw createRPCError("NotImplemented");
         });

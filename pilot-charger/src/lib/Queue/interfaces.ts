@@ -20,6 +20,7 @@ export enum EEventsQueueDBType {
 
 export interface IPayload {
   [key: string]: any;
+  timestamp?: string;
 }
 
 export interface IEventsQueue {

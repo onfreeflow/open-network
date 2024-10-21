@@ -3,19 +3,20 @@
 import {
   ICentralSystemService,
   IPayload,
-  ITransport,
-  ITransportOptions,
+  IOCPPTransport,
+  IOCPPTransportOptions,
   EEvent,
   ETransportType,
   EReconnectStrategy,
   EWebSocketProtocol
 } from "./interfaces"
-import Envelope from "./Envelope"
-import { Readable } from "fs"
+import Envelope, { parseWebSocketFrame } from "./Envelope"
 import { randomBytes } from "crypto"
-import { connect } from 'tls'
+import { connect as tlsConnect } from "tls"
+import { connect as netConnect } from "net"
+import EventsObject from "../EventsObject"
 
-export class Transport implements ITransport {
+export class OCPPTransport extends EventsObject implements IOCPPTransport {
   events: EEvent[] = Object.values( EEvent )
   centralSystemService:ICentralSystemService = {
     type: ETransportType.OCPP1_6J,
@@ -32,7 +33,8 @@ export class Transport implements ITransport {
   #link
   #linkError
   #reconnectCount = 0
-  constructor(options: ITransportOptions) {
+  constructor(options: IOCPPTransportOptions) {
+    super()
     this.events = options.events ? options.events : this.events;
 
     this.centralSystemService = {
@@ -56,38 +58,57 @@ export class Transport implements ITransport {
   }
   async connect(): Promise<void> {
     const { host, port, path, protocol, tls }:ICentralSystemService = this.centralSystemService
-    const ca:Readable = tls?.ca
-    if ( !host && !port && !path ){
+    if ( !host || !port || !path ){
       throw new SyntaxError("Cannot connect without options.centralSystemService[host|port|path]")
     }
     return new Promise( ( resolve, reject ) => {
-      this.#link = connect({
-        protocol, host, port, ca,
-        rejectUnauthorized: true,
-        keepAlive: true
-      }, async () => {
-        console.log("🔒 Securely connected to server");
+      const connectCallback = async () => {
+        console.log(`${tls?.enabled ? "🔒 Securely" :""} connected to server`);
         this.#link.write([
-          `GET ${path} HTTP/1.1`,
-          `Host: ${host}`,
-          `Upgrade: websocket`,
-          `Connection: Upgrade`,
-          `Sec-WebSocket-Key: ${randomBytes(16).toString('base64')}`,
-          `Sec-WebSocket-Version: 13`,
-          "\r\n"
-        ].join("\r\n"));
+            `GET ${path} HTTP/1.1`,
+            `Host: ${host}:${port} `,
+            `Upgrade: websocket`,
+            `Connection: Upgrade`,
+            `Sec-WebSocket-Key: ${randomBytes(16).toString('base64')}`,
+            `Sec-WebSocket-Version: 13`,
+            `Sec-Websocket-Protocol: ${this.centralSystemService.type}`
+          ]
+          .map( header => Buffer.from(header, 'ascii').toString('ascii') )
+          .join('\r\n') + '\r\n\r\n' 
+        )
         this.#linkError = undefined
         resolve()
-      })
+      }
+      console.log(`ws://${host}:${port}${path}`)
+      const connectOptions = {
+        host, port
+      }, tlsConnectOptions = {
+        ...connectOptions,
+        protocol, ca: tls?.ca,
+        rejectUnauthorized: true,
+        keepAlive: true
+      }
+      this.#link = !tls?.enabled
+                    ? netConnect( connectOptions, connectCallback)
+                    : tlsConnect( tlsConnectOptions, connectCallback )
       
       this.#link.on('data', ( data ) => {
-        console.log('📥 Received from server[data:RAW]:', data.toString('utf-8') );
+        //console.log('📥 Received from server[data:RAW]')
+        let event
+        const frameData = parseWebSocketFrame( data )
+        try {
+          event = JSON.parse( frameData )
+        } catch( e ) {
+          console.warn( e )
+          event = frameData
+        }
+        this.emit( "OCPP_EVENT", event )
       })
       this.#link.on( "end", ( ...args ) => {
-        console.log("END", ...args )
+        console.info("END", ...args )
       })
       this.#link.on( "close", async ( ...args ) => {
-        console.log( "close", ...args )
+        console.info( "close", ...args )
 
         if ( this.#linkError?.message?.includes( "connect EHOSTUNREACH" ) ){
           this.#link = undefined
@@ -98,7 +119,7 @@ export class Transport implements ITransport {
         reject()
       })
       this.#link.on( "error", ( err ) => {
-        console.error( err.message );
+        console.error( err );
         this.#linkError = err
       })
     })
@@ -118,7 +139,7 @@ export class Transport implements ITransport {
     await this.connect()
   }
   resetRetries():void {
-    //clear resetniables (soft reset)
+    //clear reconnect variables (soft reset)
   }
 
   isConnected(){
@@ -128,15 +149,14 @@ export class Transport implements ITransport {
     if ( !this.#link ) {
       throw `Cannot send message[ method: ${method}, payload: ${JSON.stringify(payload)}], not connected to Central System Service`
     }
-    await this.#link.write( new Envelope( method, payload ) )
-  }
-
-  onEvent(event: string, callback: (data: any) => void): void {
-    // Implement onEvent logic here
-  }
-
-  offEvent(event: string): void {
-    // Implement offEvent logic here
+    // console.log( "=========================")
+    // console.log( "METHOD: ", method )
+    // console.log( "PAYLOAD: ", payload )
+    // console.log( "----------------------")
+    await this.#link.write(
+            new Envelope( method, payload ).message
+          )
+    // console.log( "=========================")
   }
 }
-export default Transport
+export default OCPPTransport

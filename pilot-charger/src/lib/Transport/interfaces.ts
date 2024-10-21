@@ -1,10 +1,13 @@
 "use strict"
 
 import { Readable } from "fs"
+import FTPTransport from "./FTPTransport"
+import OCPPTransport from "./OCPPTransport"
+
 
 export interface IPayload {
   [key: string]: any;
-  timestamp: string;
+  timestamp?: string;
 }
 export interface IEnvelope {
   id     : string;
@@ -12,14 +15,15 @@ export interface IEnvelope {
 }
 
 export enum EEvent {
-  "BOOT_NOTIFICATION"   = "BootNotification",
-  "STATUS_NOTIFICATION" = "StatusNotification",
-  "TRANSACTION_START"   = "TransactionStart",
-  "TRANSACTION_STOP"    = "TransactionStop"
+  BOOT_NOTIFICATION   = "BootNotification",
+  STATUS_NOTIFICATION = "StatusNotification",
+  TRANSACTION_START   = "TransactionStart",
+  TRANSACTION_STOP    = "TransactionStop",
+  GET_DIAGNOSTICS     = "GetDiagnostics"
 }
 export enum ETransportType {
-  "OCPP1_6J"  = "OCPP1.6J",
-  "OCPP2_0_1" = "OCPP2.0.1"
+  "OCPP1_6J"  = "ocpp1.6",
+  "OCPP2_0_1" = "ocpp2.0.1"
 }
 export enum EWebSocketProtocol {
   "WS"  = "ws",
@@ -71,18 +75,35 @@ export interface ICentralSystemService {
   reconnect?: IReconnectConfiguration;
 }
 
-export interface ITransportOptions {
+export interface IOCPPTransportOptions {
   events: EEvent[];
   centralSystemService: ICentralSystemService;
 }
 
-export interface ITransport {
+export interface IOCPPTransport {
   events: EEvent[];
   centralSystemService: ICentralSystemService;
   connect(): Promise<void>;
   disconnect(): Promise<void>;
   sendMessage(method: string, payload: IPayload | undefined ): Promise<void>;
   isConnected():boolean;
-  onEvent(method: string, callback: (data: any) => void): void;
-  offEvent(method: string): void;
+  on(method: string, callback: (data: any) => void): void;
+  off(method: string): void;
 }
+export interface IFTPTransportOptions {
+  host   : string;
+  port  ?: string | number;
+  user  ?: string;
+  pass  ?: string;
+  secure?: boolean;
+  pasv  ?: boolean;
+}
+
+export interface IFTPTransport {
+  uri:string;
+  connect():void;
+  uploadFile(localPath:string, remotePath:string):Promise<{path:string}|void>;
+  end():void;
+}
+
+export type Transport = OCPPTransport | FTPTransport

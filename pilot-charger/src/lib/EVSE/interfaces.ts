@@ -2,10 +2,11 @@
 
 import { EventsQueue } from "../Queue"
 import { EVSEConnector } from "../EVSEConnector"
-import Transport from "../Transport/Transport"
+import { Transport } from "../Transport/interfaces"
 
 export interface IPayload {
   [key: string]: any;
+  timestamp?: string;
 }
 export enum EChargingMode {
   AC = 'AC',
@@ -109,6 +110,7 @@ export enum EPowerFactor {
   PF_09  = 0.9,
 }
 
+
 export interface IEVSEConfiguration {
   allowOfflineTxForUnknownId       : boolean, //true,
   authorizationCacheEnabled        : boolean, //false,
@@ -147,10 +149,9 @@ export interface IEVSEProperties {
   current        : ECurrentLevel
   powerType      : EPowerType
   meterValue     : number
-  id             : number | string;
+  id             : string | number;
   vendorId       : string
   model          : string
-  firmwareVersion: string
   serialNumber   : string
   lastHeartbeat  : string
   location       : string
@@ -171,11 +172,14 @@ export interface IEVSEOptionsEventsQueue {
 }
 
 export interface IEVSEOptions {
-  id          : string | number;
-  serialNumber: string;
-  connectors ?: EVSEConnector[] | EVSEConnector;
-  transport  ?: Transport[]
-  eventsQueue?: Omit<IEVSEEventsQueue, "queue">
+  id            : string | number;
+  serialNumber  : string;
+  connectors   ?: EVSEConnector[] | EVSEConnector;
+  transport    ?: Transport[];
+  eventsQueue  ?: Omit<IEVSEEventsQueue, "queue">;
+  os           ?: IEVSEOSConfiguration;
+  configuration?: IEVSEConfiguration;
+  manufacturer ?: IEVSEManufacturerConfiguration;
 }
 
 // Charging Rate Units
@@ -184,11 +188,16 @@ export enum EChargingScheduleAllowedChargingRateUnit {
   A = 'A',  // Amperes
 }
 
-// Energy Meter Types
-export enum EEnergyMeterType {
+export enum EMeterType {
   REVENUE_GRADE = 'Revenue Grade',
   STANDARD = 'Standard',
   BASIC = 'Basic',
+}
+// Energy Meter Types
+export interface IEnergyMeter {
+  type        : EMeterType.REVENUE_GRADE;
+  currentValue: number;
+  serialNumber: string;
 }
 
 // Network Modes
@@ -200,18 +209,63 @@ export enum ENetworkModeEVSE {
 }
 
 export interface IFirmwareConfiguration {
+  version         : string;
   downloadInterval: number;
-  downloadRetries: number;
+  downloadRetries : number;
+}
+
+export interface IGetDiagnosticsRequest {
+  location: string;
+  retries: number;
+  retryInterval: number;
+  startTime: string;
+  stopTime: string;
+}
+
+export enum EDiagnosticStatus {
+  UPLOADED = "Uploaded",
+  UPLOADING = "Uploading",
+  UPLOAD_FAILED = "UploadFailed",
+  NEVER = "Never"
+}
+
+export interface IGetDiagnosticResponse {
+  filename: string;
+}
+export interface IDiagnostics {
+  status       : EDiagnosticStatus
+  timestamp    : string;
+  path         : string;
+  filename     : string;
+  requestPeriod: string;
+}
+
+export interface IManufacturerLog {
+  name: string;
+  path: string;
+}
+
+export interface IDiagnosticsConfiguration{
+  timestamp: string;
+  status   : EDiagnosticStatus;
+}
+
+export interface IEVSEOSConfiguration {
+  temporaryDirectory?: string;
+  firmware          ?: IFirmwareConfiguration;
+  logs              ?: IManufacturerLog[];
+  diagnostics       ?: IDiagnosticsConfiguration;
 }
 
 export interface IEVSEManufacturerConfiguration {
-  chargeRate: EChargingScheduleAllowedChargingRateUnit;
-  autoReset: boolean;
-  energyMeterType: EEnergyMeterType;
-  overheatProtection: boolean;
-  networkMode: ENetworkModeEVSE;
+  vendor              : string;
+  model               : string;
+  chargeRate          : EChargingScheduleAllowedChargingRateUnit;
+  autoReset           : boolean;
+  energyMeter         : IEnergyMeter;
+  overheatProtection  : boolean;
+  networkMode         : ENetworkModeEVSE;
   userInterfaceEnabled: boolean;
-  voltageLimit: number | null;
-  currentLimit: number | null;
-  firmware: IFirmwareConfiguration;
+  voltageLimit        : number | null;
+  currentLimit        : number | null;
 }
