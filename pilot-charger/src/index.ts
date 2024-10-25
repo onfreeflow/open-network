@@ -36,18 +36,18 @@ new EVSE({
     logs: [{ name:"TestLog", path:"/usr/src/app/src/test.log" }]
   },
   transport   : [
-    new SFTPTransport({
-      host  : "eu-central-1.sftpcloud.io",
-      port  : 22,
-      user  : "31df361ca3b64065aeca0b4ee9bcc638",
-      pass  : "cjQG3jqVMz2x3mF83DhCzuOwecyaXenj"
-    }),
-    // new FTPTransport({
+    // new SFTPTransport({
     //   host  : "eu-central-1.sftpcloud.io",
-    //   port  : 21,
-    //   user  : "b9bf1b899f8a4cc5ab20c2b970c80dfc",
-    //   pass  : "j9TceJjHyyvzRPYeG3uF1Illw6BtSzwK"
+    //   port  : 22,
+    //   user  : "31df361ca3b64065aeca0b4ee9bcc638",
+    //   pass  : "cjQG3jqVMz2x3mF83DhCzuOwecyaXenj"
     // }),
+    new FTPTransport({
+      host  : "eu-central-1.sftpcloud.io",
+      port  : 21,
+      user  : "b9bf1b899f8a4cc5ab20c2b970c80dfc",
+      pass  : "j9TceJjHyyvzRPYeG3uF1Illw6BtSzwK"
+    }),
     new OCPPTransport({
       centralSystemService:{
         type    : ETransportType.OCPP1_6J,
