@@ -19,11 +19,13 @@ import {
   IEVSEOptions,
   IEVSEOSConfiguration,
   IEVSEManufacturerConfiguration,
+  EPerfMarksFTPUpload,
+  EPerfMeasuresFTPUpload
 } from "./interfaces.ts"
 import { IPayload, Transport, ETransportType, EEvent } from "../Transport/interfaces.ts"
 
 import { EVSEConnector } from  "../EVSEConnector"
-import { OCPPTransport, FTPTransport } from "../Transport/index.ts"
+import { OCPPTransport, FTPTransport, SFTPTransport } from "../Transport/index.ts"
 import { EventsQueue } from "../Queue"
 
 const logger = new Logger(/*{out:"./logs/ocpp_log.log"}*/)
@@ -107,7 +109,7 @@ export class EVSE implements IEVSE {
   }
   
   #ocppTransports: OCPPTransport[]
-  #ftpTransports : FTPTransport[]
+  #ftpTransports : Array<FTPTransport|SFTPTransport>
 
   //#commsTransport: 
   //#serialTransports: SerialTransport[]
@@ -121,7 +123,7 @@ export class EVSE implements IEVSE {
                           ? options.transport.filter( transport => transport instanceof OCPPTransport )
                           : options.transport instanceof OCPPTransport ? [ options.transport ] : []
     this.#ftpTransports = typeof options.transport === 'object'
-                          ? options.transport.filter( transport => transport instanceof FTPTransport )
+                          ? options.transport.filter( transport => transport instanceof FTPTransport || transport instanceof SFTPTransport )
                           : options.transport instanceof FTPTransport ? [ options.transport ] : []
     this.configuration = { ...this.configuration, ...options.configuration }
     this.eventsQueue = { ...this.eventsQueue, ...options.eventsQueue }
@@ -193,6 +195,7 @@ export class EVSE implements IEVSE {
         if ( eventMethod === EEvent.GET_DIAGNOSTICS ) {
           const { location } = eventPayload
           await this.#sendDiagnostics({ location })
+          transport.sendMessage(  EEvent.GET_DIAGNOSTICS, { filename: location }, messageId )
         }
       }
     })
@@ -220,25 +223,15 @@ export class EVSE implements IEVSE {
     this.lastHeartbeat = new Date().toISOString()
     this.emit( "Heartbeat" )
   }
-  async #ftpUpload( transport:FTPTransport, localPath:string , remotePath:string ){
-   // const retry = () => this.#ftpUpload( transport, localPath, remotePath )
-    enum EPerfMarksFTPUpload {
-      FTP_UPLOAD_CONNECTING = "FTP_UPLOAD_CONNECTING",
-      START_FTP_UPLOAD = "START_FTP_UPLOAD",
-      COMPLETE_FTP_UPLOAD = "COMPLETE_FTP_UPLOAD"
-    }
-    enum EPerfMeasuresFTPUpload {
-      FTP_TIME_TO_CONNECT = "FTP_TIME_TO_CONNECT",
-      FTP_TIME_TO_UPLOAD = "FTP_TIME_TO_UPLOAD"
-    }
+  async #ftpUpload( transport:FTPTransport|SFTPTransport, localPath:string , remotePath:string ){
     /**
      * Start EVSE FTP Upload Timer
     */
     performance.mark(EPerfMarksFTPUpload.FTP_UPLOAD_CONNECTING)
 
-    const localFileStats:any = statSync(localPath)
-
     await transport.connect()
+    
+    const localFileStats:any = statSync(localPath)
 
     this.emit( "DiagnosticStatusNotification", {
       status    : EDiagnosticStatus.UPLOADING,
@@ -282,6 +275,7 @@ export class EVSE implements IEVSE {
   
   async #sendDiagnostics({ location, retries, interval, startTimestamp, stopTimestamp }:{location:string, retries?:number, interval?:number, startTimestamp?:string, stopTimestamp?:string}){
     //TODO: manage the retries, interval, startTimestamp, and stopTimestamp
+    // const retry = () => this.#ftpUpload( transport, localPath, remotePath )
     const match = location.match(
                 /([a-zA-Z]+):\/\/([a-zA-Z0-9._%+-]+):([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+)(:[0-9]+)?(\/.*)?/
               )
@@ -306,14 +300,19 @@ export class EVSE implements IEVSE {
       if ( !remoteHostname ) throw new SyntaxError( "EVSE#sendDiagnostics: [location] property missing [hostname]" )
       if ( remoteUsername && !remotePassword ) throw new SyntaxError( "EVSE#sendDiagnostics: Has [username] Missing [password]" ) 
       if ( !remoteUsername && remotePassword ) throw new SyntaxError( "EVSE#sendDiagnostics: Has [password] Missing [username]" )
-      const transport = new FTPTransport({
-                            host: remoteHostname,
-                            port: remotePort,
-                            user: remoteUsername,
-                            pass: remotePassword,
-                            secure: remoteProtocol && remoteProtocol?.toLowerCase() === "sftp"
-                                    ? true : false
-                          })
+      const transport = remoteProtocol && remoteProtocol?.toLowerCase() === "sftp"
+                          ? new SFTPTransport({
+                              host: remoteHostname,
+                              port: remotePort,
+                              user: remoteUsername,
+                              pass: remotePassword
+                            })
+                          : new FTPTransport({
+                              host: remoteHostname,
+                              port: remotePort,
+                              user: remoteUsername,
+                              pass: remotePassword
+                            })
       await this.#ftpUpload( transport, combinedLogPath, remotePath )
     } else {
       await Promise.all(

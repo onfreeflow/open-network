@@ -10,7 +10,7 @@ import {
   EReconnectStrategy,
   EWebSocketProtocol
 } from "./interfaces"
-import Envelope, { parseWebSocketFrame } from "./Envelope"
+import { CallEnvelope, ResponseEvelope, parseWebSocketFrame } from "./Envelope"
 import { randomBytes } from "crypto"
 import { connect as tlsConnect } from "tls"
 import { connect as netConnect } from "net"
@@ -145,18 +145,15 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
   isConnected(){
     return !!this.#link
   }
-  async sendMessage( method: string, payload?: IPayload ): Promise<void> {
+  async sendMessage( method: string, payload?: IPayload, messageId: string ): Promise<void> {
     if ( !this.#link ) {
       throw `Cannot send message[ method: ${method}, payload: ${JSON.stringify(payload)}], not connected to Central System Service`
     }
-    // console.log( "=========================")
-    // console.log( "METHOD: ", method )
-    // console.log( "PAYLOAD: ", payload )
-    // console.log( "----------------------")
     await this.#link.write(
-            new Envelope( method, payload ).message
+            messageId
+            ? new ResponseEvelope( method, payload, messageId )
+            : new CallEnvelope( method, payload ).message
           )
-    // console.log( "=========================")
   }
 }
 export default OCPPTransport

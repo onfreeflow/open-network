@@ -59,7 +59,7 @@ export class FTPTransport implements IFTPTransport {
   #sendCommand = (command: string, expectedCode: string|undefined):Promise<string> =>
     new Promise( (resolve, reject) => {
       this.#connection.write(`${command}\r\n`);
-      this.#connection.once('data', data => {
+      this.#connection.on('data', data => {
         const response = data.toString();
         if (response.startsWith('5') || response.startsWith('4')) {
           return reject(new Error(`FTP error[${command}]: ${response}`));
@@ -68,11 +68,11 @@ export class FTPTransport implements IFTPTransport {
         const code = response.slice(0, 3);
         if (expectedCode && code !== expectedCode) {
           console.debug(`Waiting for expected response code: ${expectedCode}, but got: ${code}`);
-          if ( code === "SSH" ){
+          if ( !this.#connectionConfiguration.secure && code === "SSH" ){
             this.end()
             return reject( new Error("SSH Response"));
           }
-          return; // Ignore this response if it's not the expected one
+          return;
         }
         resolve(response);
       });

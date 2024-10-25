@@ -4,6 +4,16 @@ import { EventsQueue } from "../Queue"
 import { EVSEConnector } from "../EVSEConnector"
 import { Transport } from "../Transport/interfaces"
 
+export enum EPerfMarksFTPUpload {
+  FTP_UPLOAD_CONNECTING = "FTP_UPLOAD_CONNECTING",
+  START_FTP_UPLOAD = "START_FTP_UPLOAD",
+  COMPLETE_FTP_UPLOAD = "COMPLETE_FTP_UPLOAD"
+}
+export enum EPerfMeasuresFTPUpload {
+  FTP_TIME_TO_CONNECT = "FTP_TIME_TO_CONNECT",
+  FTP_TIME_TO_UPLOAD = "FTP_TIME_TO_UPLOAD"
+}
+
 export interface IPayload {
   [key: string]: any;
   timestamp?: string;

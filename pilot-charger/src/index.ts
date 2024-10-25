@@ -4,7 +4,7 @@ import { readFileSync } from "fs"
 import { EVSE } from "./lib/EVSE"
 import { EVSEConnector } from "./lib/EVSEConnector"
 import { EConnectorType, EChargingMode } from "./lib/EVSEConnector/interfaces"
-import { OCPPTransport, FTPTransport } from "./lib/Transport"
+import { OCPPTransport, FTPTransport, SFTPTransport } from "./lib/Transport"
 import { ETransportType, EEvent, EReconnectStrategy, EWebSocketProtocol } from "./lib/Transport/interfaces"
 
 const logLevel = 'log';
@@ -36,13 +36,18 @@ new EVSE({
     logs: [{name:"TestLog",path:"/usr/src/app/src/test.log"}]
   },
   transport   : [
-    new FTPTransport({
+    new SFTPTransport({
       host  : "eu-central-1.sftpcloud.io",
       port  : 22,
-      user  : "3f28c080114e44dca15fe8fe840b3487",
-      pass  : "2QzkqHAADe5YFkacikyrxQplDKgrtwrR",
-      secure: true
+      user  : "bab957a3412542ff94ca28a9a802a91f",
+      pass  : "BhL0u7zh3OFNaEVs7Bc4aLAlQyyTFaQH"
     }),
+    // new FTPTransport({
+    //   host  : "eu-central-1.sftpcloud.io",
+    //   port  : 21,
+    //   user  : "b9bf1b899f8a4cc5ab20c2b970c80dfc",
+    //   pass  : "j9TceJjHyyvzRPYeG3uF1Illw6BtSzwK"
+    // }),
     new OCPPTransport({
       centralSystemService:{
         type    : ETransportType.OCPP1_6J,

@@ -2,6 +2,7 @@
 
 import { Readable } from "fs"
 import FTPTransport from "./FTPTransport"
+import SFTPTransport from "./SFTPTransport"
 import OCPPTransport from "./OCPPTransport"
 
 
@@ -95,7 +96,6 @@ export interface IFTPTransportOptions {
   port  ?: string | number;
   user  ?: string;
   pass  ?: string;
-  secure?: boolean;
   pasv  ?: boolean;
 }
 
@@ -106,4 +106,4 @@ export interface IFTPTransport {
   end():void;
 }
 
-export type Transport = OCPPTransport | FTPTransport
+export type Transport = OCPPTransport | FTPTransport | SFTPTransport

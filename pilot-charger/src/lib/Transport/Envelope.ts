@@ -78,10 +78,10 @@ export const parseWebSocketFrame = (frame: Buffer):string => {
   }
 };
 
-const formatOCPPMessage = ( method:string, payload:IPayload = {} ):Buffer => {
+const formatOCPPMessage = ( method:string, payload:IPayload = {}, messageId = Math.random().toString(36).substring(2, 15), messageType = 2 ):Buffer => {
   const messageArr:any = [
-    2,
-    Math.random().toString(36).substring(2, 15),
+    messageType,
+    messageId,
     method,
     payload
   ]
@@ -97,11 +97,19 @@ const formatOCPPMessage = ( method:string, payload:IPayload = {} ):Buffer => {
   return createWebSocketFrame( JSON.stringify( messageArr ) )
 }
 
-export default class Envelope implements IEnvelope {
+export class CallEnvelope implements IEnvelope {
   id:string = uuidv4()
   message:Buffer
   
   constructor( method:string, payload:IPayload = { timestamp: new Date().toISOString() } ) {
     this.message = formatOCPPMessage( method, payload )
+  }
+}
+export class ResponseEvelope implements IEnvelope {
+  id:string = uuidv4()
+  message:Buffer
+  
+  constructor( method:string, payload:IPayload = { timestamp: new Date().toISOString() }, messageId ) {
+    this.message = formatOCPPMessage( method, payload, messageId, 3 )
   }
 }
