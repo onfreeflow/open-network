@@ -45,8 +45,8 @@ new EVSE({
     new FTPTransport({
       host  : "eu-central-1.sftpcloud.io",
       port  : 21,
-      user  : "b9bf1b899f8a4cc5ab20c2b970c80dfc",
-      pass  : "j9TceJjHyyvzRPYeG3uF1Illw6BtSzwK"
+      user  : "247d21666ad84822a3c104d218707806",
+      pass  : "dV3Nl2HJR7revEy0OJhXLsbeSonBZ5Cv"
     }),
     new OCPPTransport({
       centralSystemService:{

@@ -145,7 +145,7 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
   isConnected(){
     return !!this.#link
   }
-  async sendMessage( method: string, payload?: IPayload, messageId: string ): Promise<void> {
+  async sendMessage( method: string, payload?: IPayload, messageId?: string ): Promise<void> {
     if ( !this.#link ) {
       throw `Cannot send message[ method: ${method}, payload: ${JSON.stringify(payload)}], not connected to Central System Service`
     }

@@ -152,8 +152,12 @@ export interface IEVSEEventsQueue {
   host  ?: string,
   port  ?: number
 }
-
+export enum EAvailability {
+  OPERATIVE = "operative",
+  INOPERATIVE = "inoperative"
+}
 export interface IEVSEProperties {
+  availability   : EAvailability;
   connectors     : EVSEConnector[];
   voltage        : EVoltageLevel
   current        : ECurrentLevel

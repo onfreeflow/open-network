@@ -37,6 +37,10 @@ export enum EDemandResponseStatus {
   "CONSTRAINED" = 'constrained',
   "UNCONSTRAINED" = 'unconstrained'
 }
+export enum EAvailability {
+  OPERATIVE = "operative",
+  INOPERATIVE = "inoperative"
+}
 export interface IEVSEConnectorOptions {
   id           : string | number;
   connectorType: EConnectorType
@@ -46,6 +50,7 @@ export interface IEVSEConnectorOptions {
   cableLength  : number;
 }
 export interface IEVSEConnector {
+  availability: EAvailability;
   connectorType: EConnectorType;
   maxVoltage: number;
   maxCurrent: number;

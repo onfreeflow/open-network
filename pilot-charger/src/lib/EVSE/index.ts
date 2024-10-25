@@ -5,6 +5,7 @@ import { performance } from "perf_hooks"
 import Logger from "../Logger.ts"
 
 import {
+  EAvailability,
   EChargingScheduleAllowedChargingRateUnit,
   ECurrentLevel,
   EMeterType,
@@ -41,6 +42,7 @@ const validateOptions = options => {
 }
 
 export class EVSE implements IEVSE {
+  availability: EAvailability = EAvailability.OPERATIVE;
   connectors: EVSEConnector[] = []
   voltage:EVoltageLevel = EVoltageLevel.AC_LEVEL_2_SINGLE_PHASE
   current:ECurrentLevel = ECurrentLevel.AC_LEVEL_2
@@ -192,10 +194,18 @@ export class EVSE implements IEVSE {
       if ( transport.centralSystemService.type === ETransportType.OCPP1_6J ){
         logger.info( "OCPP_EVENT: ", eventData )
         const [ messageType, messageId, eventMethod, eventPayload ] = eventData
-        if ( eventMethod === EEvent.GET_DIAGNOSTICS ) {
-          const { location } = eventPayload
-          await this.#sendDiagnostics({ location })
-          transport.sendMessage(  EEvent.GET_DIAGNOSTICS, { filename: location }, messageId )
+        switch( eventMethod ){
+          case EEvent.GET_DIAGNOSTICS:{
+            const { location } = eventPayload
+            await this.#sendDiagnostics({ location })
+            transport.sendMessage( EEvent.GET_DIAGNOSTICS, { status: "Accepted", filename: location }, messageId )
+          }
+          case EEvent.CHANGE_AVAILABILITY:{
+            const { connectorId, type } = eventPayload
+            await this.#updateAvailability( connectorId, type )
+            transport.sendMessage( EEvent.CHANGE_AVAILABILITY, { status: "Accepted" }, messageId )
+          }
+          default: break;
         }
       }
     })
@@ -330,6 +340,16 @@ export class EVSE implements IEVSE {
     this.emit( "GetDiagnosticsResponse", {
       filename: ""
     })
+  }
+  #updateAvailability( connectorId: number, newAvailability: EAvailability ){
+    if( connectorId === 0 ) {
+      if ( !Object.values( EAvailability ).some( type => type === newAvailability ) ){
+        throw new TypeError( )
+      }
+      this.availability = newAvailability
+    } else {
+      this.connectors.filter( connector => connector.id !== connectorId )[0].updateAvailability( newAvailability )
+    }
   }
 }
 export default EVSE

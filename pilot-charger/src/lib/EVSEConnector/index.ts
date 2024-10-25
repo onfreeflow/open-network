@@ -9,6 +9,7 @@ import {
   ICHAdeMOConnector,
   ITeslaConnector,
   IGBTConnector,
+  EAvailability,
   EConnectorType,
   EIsolationStatus,
   EChargingMode,
@@ -20,6 +21,7 @@ import {
 
 export class EVSEConnector implements IEVSEConnector {
   id                   : string | number;
+  availability         : EAvailability;
   connectorType        : EConnectorType;
   maxVoltage           : number                 = 120; // V
   maxCurrent           : number                 = 32;  // A
@@ -141,6 +143,12 @@ export class EVSEConnector implements IEVSEConnector {
       gridStatus: this.gridStatus,
       demandResponseStatus: this.demandResponseStatus,
     };
+  }
+  updateAvailability( newAvailability: EAvailability ){
+    if ( !Object.values( EAvailability ).some( type => type === newAvailability ) ){
+      throw new TypeError(`New availablility[${newAvailability}] not accpeted by connector[${this.id}]`) 
+    }
+    this.availability = newAvailability
   }
 }
 

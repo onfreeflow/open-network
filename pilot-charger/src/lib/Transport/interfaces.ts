@@ -20,7 +20,8 @@ export enum EEvent {
   STATUS_NOTIFICATION = "StatusNotification",
   TRANSACTION_START   = "TransactionStart",
   TRANSACTION_STOP    = "TransactionStop",
-  GET_DIAGNOSTICS     = "GetDiagnostics"
+  GET_DIAGNOSTICS     = "GetDiagnostics",
+  CHANGE_AVAILABILITY = "ChangeAvailability"
 }
 export enum ETransportType {
   "OCPP1_6J"  = "ocpp1.6",
@@ -86,7 +87,7 @@ export interface IOCPPTransport {
   centralSystemService: ICentralSystemService;
   connect(): Promise<void>;
   disconnect(): Promise<void>;
-  sendMessage(method: string, payload: IPayload | undefined ): Promise<void>;
+  sendMessage(method: string, payload: IPayload | undefined, messageId?: string ): Promise<void>;
   isConnected():boolean;
   on(method: string, callback: (data: any) => void): void;
   off(method: string): void;
