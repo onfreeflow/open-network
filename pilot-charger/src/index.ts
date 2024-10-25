@@ -33,14 +33,14 @@ new EVSE({
     new EVSEConnector({ ...connectorOpts, id: 2, connectorType: EConnectorType.CCS1 })
   ],
   os:{
-    logs: [{name:"TestLog",path:"/usr/src/app/src/test.log"}]
+    logs: [{ name:"TestLog", path:"/usr/src/app/src/test.log" }]
   },
   transport   : [
     new SFTPTransport({
       host  : "eu-central-1.sftpcloud.io",
       port  : 22,
-      user  : "bab957a3412542ff94ca28a9a802a91f",
-      pass  : "BhL0u7zh3OFNaEVs7Bc4aLAlQyyTFaQH"
+      user  : "31df361ca3b64065aeca0b4ee9bcc638",
+      pass  : "cjQG3jqVMz2x3mF83DhCzuOwecyaXenj"
     }),
     // new FTPTransport({
     //   host  : "eu-central-1.sftpcloud.io",

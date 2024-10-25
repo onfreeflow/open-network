@@ -1,9 +1,10 @@
 import { EventEmitter, once } from "events"
 import {
-  createDiffieHellman,
-  createHash,
   createCipheriv,
-  createDecipheriv
+  createDecipheriv,
+  createDiffieHellman,
+  createECDH,
+  createHash
 } from "crypto"
 import { Socket } from "net"
 import { readFileSync } from "fs"
@@ -53,32 +54,115 @@ export class SFTPTransport implements IFTPTransport {
   }
   async connect(){
     this.#connection = new Socket()
-    console.debug("Creating DiffieHellman Algo...")
-    const dh = createDiffieHellman(2048)
-    console.debug("...completed!")    
-    const clientPublicKey = dh.generateKeys()
 
     await new Promise( ( resolve, reject ) => {
       this.#connection.connect( this.#connectionConfiguration.port, this.#connectionConfiguration.host, resolve )
       this.#connection.on( "error", reject)
     })
     
-    this.#connection.write( "SSH-2.0-MySFTPClient\r\n" )
-    const serverProtocol:Buffer = await new Promise( resolve => this.#connection.once( "data", resolve ) )
-    this.#connection.write( clientPublicKey )
-    const serverPublicKey:Buffer = await new Promise( resolve => this.#connection.once( "data", resolve ) )
+    this.#connection.write( "SSH-2.0-GenericClient_1.0\r\n" )
 
-    // const serverPublicKey:Buffer = await new Promise( ( resolve, reject ) =>{
-    //   this.#connection.once( "data", ( key ) => {
-    //     try {
-    //       resolve( key )
-    //     } catch ( e ) {
-    //       reject( e )
-    //     }
-    //   })
-    // })
+    const serverProtocol = await new Promise((resolve, reject) => {
+      let protocolBuffer = Buffer.alloc(0);
+      const timeout = setTimeout(() => {
+        this.#connection.off("data", onData);
+        reject(new Error("Timeout waiting for full server protocol response"));
+      }, 3000);
+
+      const onData = (data) => {
+        protocolBuffer = Buffer.concat([protocolBuffer, data]);
+
+        const protocolString = protocolBuffer.toString();
+        if (protocolString.includes('curve25519') || protocolString.includes('ecdh-sha2') || protocolString.includes('diffie-hellman')) {
+          clearTimeout(timeout);
+          this.#connection.off("data", onData);
+          resolve(protocolString);
+        }
+      };
+
+      this.#connection.on("data", onData);
+      this.#connection.on("error", (error) => {
+        clearTimeout(timeout);
+        this.#connection.off("data", onData);
+        reject(error);
+      });
+    });
+
+    console.log("Server Protocol:", serverProtocol);
+
+    const supportedKexAlgorithms:string[] = serverProtocol.match(/curve25519|ecdh-sha2-nistp\d+|diffie-hellman-group\d+-sha\d+/g) || [];
+    let clientKex;
+    let clientPublicKey;
+    
+    if (supportedKexAlgorithms.includes("ecdh-sha2-nistp256")) {
+      console.debug("Using ecdh-sha2-nistp256 for key exchange");
+      clientKex = createECDH("prime256v1");
+      clientPublicKey = clientKex.generateKeys();
+    } else if (supportedKexAlgorithms.includes("ecdh-sha2-nistp384")) {
+      console.debug("Using ecdh-sha2-nistp384 for key exchange");
+      clientKex = createECDH("secp384r1");
+      clientPublicKey = clientKex.generateKeys();
+    } else if (supportedKexAlgorithms.includes("ecdh-sha2-nistp521")) {
+      console.debug("Using ecdh-sha2-nistp521 for key exchange");
+      clientKex = createECDH("secp521r1");
+      clientPublicKey = clientKex.generateKeys();
+    } else if (supportedKexAlgorithms.includes("diffie-hellman-group14-sha256")) {
+      console.debug("Using diffie-hellman-group14-sha256 for key exchange");
+      clientKex = createDiffieHellman(2048);
+      clientPublicKey = clientKex.generateKeys();
+    } else if (supportedKexAlgorithms.includes("diffie-hellman-group1-sha1")) {
+      console.debug("Using diffie-hellman-group1-sha1 for key exchange");
+      clientKex = createDiffieHellman(1024);
+      clientPublicKey = clientKex.generateKeys();
+    } else {
+      throw new Error("No compatible key exchange algorithm found");
+    }
+
+    const serverPublicKey:Buffer = await new Promise( ( resolve, reject ) =>{
+      console.log( "Promise Started" )
+      let buffer = Buffer.alloc(0)
+      let retryCount = 0
+      const maxRetries = 5
+
+      const timeout = setTimeout(() => {
+        this.#connection.off("data", onData)
+        reject( new Error( "Timeout waiting for server public key" ) )
+      }, 30000)
+
+      const onData = (key) => {
+        buffer = Buffer.concat([buffer, key])
+        if (buffer.length > 0) {
+          clearTimeout(timeout)
+          this.#connection.off("data", onData)
+          resolve(buffer)
+        }
+      };
+
+      const sendClientKey = () => {
+        if (retryCount < maxRetries) {
+          console.log(`Sending client public key to server (Attempt ${retryCount + 1}/${maxRetries})...`);
+          this.#connection.write(clientPublicKey);
+          retryCount += 1;
+        } else {
+          clearInterval(retryInterval);
+          reject(new Error("Failed to receive server public key after multiple attempts"));
+        }
+      };
+  
+      const retryInterval = setInterval(sendClientKey, 5000);
+      sendClientKey();
+
+      this.#connection.on("data", onData);
+
+      this.#connection.on("error", (error) => {
+        clearTimeout(timeout)
+        this.#connection.off("data", onData)
+        reject(error)
+      });
+    })
+
     console.log("SERVER PUBLIC KEY:", serverPublicKey.toString())
-    this.#sharedSecret  = dh.computeSecret( serverPublicKey )
+    this.#sharedSecret  = clientKex.computeSecret( serverPublicKey )
     this.#encryptionKey = createHash( "sha256" ).update( this.#sharedSecret ).digest()
     this.#cipher        = createCipheriv("aes-256-ctr", this.#encryptionKey, Buffer.alloc(16, 0));
     this.#decipher      = createDecipheriv( "aes-256-ctr", this.#encryptionKey, Buffer.alloc(16, 0));
