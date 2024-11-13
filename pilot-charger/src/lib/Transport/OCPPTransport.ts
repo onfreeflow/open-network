@@ -10,7 +10,7 @@ import {
   EReconnectStrategy,
   EWebSocketProtocol
 } from "./interfaces"
-import { CallEnvelope, ResponseEvelope, parseWebSocketFrame } from "./Envelope"
+import { CallEnvelope, ResponseEnvelope, parseWebSocketFrame } from "./Envelope"
 import { randomBytes } from "crypto"
 import { connect as tlsConnect } from "tls"
 import { connect as netConnect } from "net"
@@ -31,8 +31,8 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
     }
   }
   #link
-  #linkError
-  #reconnectCount = 0
+  #linkError:Error|undefined
+  #reconnectCount:number = 0
   constructor(options: IOCPPTransportOptions) {
     super()
     this.events = options.events ? options.events : this.events;
@@ -76,6 +76,7 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
           .map( header => Buffer.from(header, 'ascii').toString('ascii') )
           .join('\r\n') + '\r\n\r\n' 
         )
+        this.#reconnectCount = 0
         this.#linkError = undefined
         resolve()
       }
@@ -99,8 +100,9 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
         try {
           event = JSON.parse( frameData )
         } catch( e ) {
-          console.warn( e )
-          event = frameData
+          // TODO: clean up non-text frames
+          //console.warn( e )
+          // event = frameData
         }
         this.emit( "OCPP_EVENT", event )
       })
@@ -114,6 +116,8 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
           this.#link = undefined
           this.reconnect()
           return
+        } else {
+          setTimeout(this.reconnect, this.centralSystemService?.reconnect?.timeout || 30000 )
         }
         
         reject()
@@ -130,9 +134,12 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
   }
 
   async reconnect(): Promise<void> {
-    // Implement strategy  
+    // Implement strategy
+    if ( !this.centralSystemService.reconnect ){
+      throw new SyntaxError( "Reconnects not defined" )
+    }
     if ( this.#reconnectCount > this.centralSystemService.reconnect.attempts ){
-      throw "Max Reconnects"
+      throw new Error("Max Reconnects")
     }
     this.#reconnectCount = this.#reconnectCount + 1
     console.log( `Reconnect Attempt with strategy[${this.centralSystemService.reconnect.strategy}]: ${this.#reconnectCount} of ${this.centralSystemService.reconnect.attempts}`)
@@ -145,15 +152,19 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
   isConnected(){
     return !!this.#link
   }
-  async sendMessage( method: string, payload?: IPayload, messageId?: string ): Promise<void> {
+  async sendMessage( method: string, payload?: IPayload ): Promise<void> {
     if ( !this.#link ) {
       throw `Cannot send message[ method: ${method}, payload: ${JSON.stringify(payload)}], not connected to Central System Service`
     }
-    await this.#link.write(
-            messageId
-            ? new ResponseEvelope( method, payload, messageId )
-            : new CallEnvelope( method, payload ).message
-          )
+    const { message } = new CallEnvelope( method, payload )
+    await this.#link.write( message )
+  }
+  async sendResponse( messageId: string, payload: IPayload ): Promise<void>{
+    if ( !this.#link ) {
+      throw `Cannot send response[ Id: ${messageId}, payload: ${JSON.stringify(payload)}], not connected to Central System Service`
+    }
+    const { message } = new ResponseEnvelope( messageId, payload )
+    await this.#link.write( message )
   }
 }
 export default OCPPTransport

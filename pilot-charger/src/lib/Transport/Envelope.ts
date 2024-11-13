@@ -78,9 +78,9 @@ export const parseWebSocketFrame = (frame: Buffer):string => {
   }
 };
 
-const formatOCPPMessage = ( method:string, payload:IPayload = {}, messageId = Math.random().toString(36).substring(2, 15), messageType = 2 ):Buffer => {
+const formatOCPPMessage = ( method:string, payload:IPayload = {}, messageId = Math.random().toString(36).substring(2, 15) ):Buffer => {
   const messageArr:any = [
-    messageType,
+    2,
     messageId,
     method,
     payload
@@ -97,19 +97,50 @@ const formatOCPPMessage = ( method:string, payload:IPayload = {}, messageId = Ma
   return createWebSocketFrame( JSON.stringify( messageArr ) )
 }
 
-export class CallEnvelope implements IEnvelope {
+const formatOCPPResponse = ( messageId:string, payload:IPayload = {} ):Buffer => {
+  const messageArr:any = [
+    3,
+    messageId,
+    payload
+  ]
+  try {
+    if ( typeof messageArr !== "object" && !(messageArr instanceof Array) ) throw new ErrorMalformedMessage("must be of type 'object' and instance of Array. OCPP expects a list []")
+    if ( messageArr.length !== 3 ) throw new ErrorMalformedMessage("response must be 3 items: [messageType, messageId, payload]")
+    if ( typeof messageArr[ 0 ] !== "number" ) throw new ErrorMalformedMessage("message[0] must be of type 'number'")
+    if ( typeof messageArr[ 1 ] !== "string") throw new ErrorMalformedMessage("message[1] must be of type 'string'")
+  } catch ( e ) {
+    console.error( e.message, e.cause )
+  }
+  return createWebSocketFrame( JSON.stringify( messageArr ) )
+}
+
+export class CallEnvelope implements IEnvelope {  
   id:string = uuidv4()
+  text:string
   message:Buffer
-  
   constructor( method:string, payload:IPayload = { timestamp: new Date().toISOString() } ) {
+    this.text = `[${method}]: ${JSON.stringify(payload)}`
     this.message = formatOCPPMessage( method, payload )
   }
 }
-export class ResponseEvelope implements IEnvelope {
+export class ResponseEnvelope implements IEnvelope {
   id:string = uuidv4()
+  text:string
   message:Buffer
-  
-  constructor( method:string, payload:IPayload = { timestamp: new Date().toISOString() }, messageId ) {
-    this.message = formatOCPPMessage( method, payload, messageId, 3 )
+  constructor( messageId:string, payload:IPayload = { timestamp: new Date().toISOString() } ) {
+    this.id = messageId
+    this.text = `[${messageId}]: ${JSON.stringify(payload)}`
+    this.message = formatOCPPResponse( messageId, payload )
   }
 }
+
+// export class ErrorEnvelope implements IEnvelope {
+//   id:string = uuidv4()
+//   text:string
+//   message:Buffer
+//   constructor( messageId:string, payload:IPayload = { timestamp: new Date().toISOString() } ) {
+//     this.id = messageId
+//     this.error = new Error(`[${messageId}]: ${JSON.stringify(payload)}`)
+//     this.message = formatOCPPError( messageId, payload )
+//   }
+// }

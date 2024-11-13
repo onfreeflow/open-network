@@ -4,6 +4,20 @@ import { EventsQueue } from "../Queue"
 import { EVSEConnector } from "../EVSEConnector"
 import { Transport } from "../Transport/interfaces"
 
+export enum EErrorCode {
+  NO_ERROR = "NoError",
+  CONNECTOR_LOCK_FAILURE = "ConnectorLockFailure",
+  GROUND_FAILURE = "GroundFailure",
+  OVER_CURRENT_FAILURE = "OverCurrentFailure",
+  POWER_METER_FAILURE = "PowerMeterFailure",
+  POWER_SWITCH_FAILURE = "PowerSwitchFailure",
+  READER_FAILURE = "ReaderFailure",
+  RESET_FAILURE = "ResetFailure",
+  UNDER_VOLTAGE = "UnderVoltage",
+  OVER_VOLTAGE = "OverVoltage",
+  WEAK_SIGNAL = "WeakSignal"
+}
+
 export enum EPerfMarksFTPUpload {
   FTP_UPLOAD_CONNECTING = "FTP_UPLOAD_CONNECTING",
   START_FTP_UPLOAD = "START_FTP_UPLOAD",
@@ -153,8 +167,10 @@ export interface IEVSEEventsQueue {
   port  ?: number
 }
 export enum EAvailability {
-  OPERATIVE = "operative",
-  INOPERATIVE = "inoperative"
+  AVAILABLE = "Available",
+  UNAVAILABLE = "Unavailable",
+  OPERATIVE = "Operative",
+  INOPERATIVE = "Inoperative"
 }
 export interface IEVSEProperties {
   availability   : EAvailability;

@@ -38,8 +38,8 @@ export enum EDemandResponseStatus {
   "UNCONSTRAINED" = 'unconstrained'
 }
 export enum EAvailability {
-  OPERATIVE = "operative",
-  INOPERATIVE = "inoperative"
+  OPERATIVE = "Operative",
+  INOPERATIVE = "Inoperative"
 }
 export interface IEVSEConnectorOptions {
   id           : string | number;
@@ -49,23 +49,47 @@ export interface IEVSEConnectorOptions {
   maxCurrent   : number;
   cableLength  : number;
 }
+export enum EErrorCode {
+  NO_ERROR = "NoError",
+  CONNECTOR_LOCK_FAILURE = "ConnectorLockFailure",
+  GROUND_FAILURE = "GroundFailure",
+  OVER_CURRENT_FAILURE = "OverCurrentFailure",
+  POWER_METER_FAILURE = "PowerMeterFailure",
+  POWER_SWITCH_FAILURE = "PowerSwitchFailure",
+  READER_FAILURE = "ReaderFailure",
+  RESET_FAILURE = "ResetFailure",
+  UNDER_VOLTAGE = "UnderVoltage",
+  OVER_VOLTAGE = "OverVoltage",
+  WEAK_SIGNAL = "WeakSignal"
+}
+export enum EConnectorStatus {
+  AVAILABLE      = "Available",
+  UNAVAILABLE    = "Unavailable",
+  OCCUPIED       = "Occupied",
+  RESERVED       = "Reserved",
+  FAULTED        = "Faulted",
+  CHARGING       = "Charging",
+  SUSPENDED_EV   = "SuspendedEV",
+  SUSPENDED_EVSE = "SuspendedEVSE",
+  FINISHING      = "Finishing"
+}
 export interface IEVSEConnector {
-  availability: EAvailability;
-  connectorType: EConnectorType;
-  maxVoltage: number;
-  maxCurrent: number;
-  cableLength?: number;
-  isConnected: boolean;
-  isCharging: boolean;
-  powerOutput: number;
-  isolationStatus: EIsolationStatus;
-  vehicleSoc: number;
-  targetSoc: number;
-  chargingMode: EChargingMode;
+  status               : EConnectorStatus;
+  connectorType        : EConnectorType;
+  maxVoltage           : number;
+  maxCurrent           : number;
+  cableLength         ?: number;
+  isConnected          : boolean;
+  isCharging           : boolean;
+  powerOutput          : number;
+  isolationStatus      : EIsolationStatus;
+  vehicleSoc           : number;
+  targetSoc            : number;
+  chargingMode         : EChargingMode;
   communicationProtocol: string;
-  energyPrice: number;
-  gridStatus: EGridStatus;
-  demandResponseStatus: EDemandResponseStatus;
+  energyPrice          : number;
+  gridStatus           : EGridStatus;
+  demandResponseStatus : EDemandResponseStatus;
 
   connect(): Promise<void>;
   disconnect(): Promise<void>;

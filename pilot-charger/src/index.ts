@@ -1,11 +1,19 @@
 "use strict"
 
-import { readFileSync } from "fs"
+import { readFileSync, writeFileSync } from "fs"
 import { EVSE } from "./lib/EVSE"
 import { EVSEConnector } from "./lib/EVSEConnector"
 import { EConnectorType, EChargingMode } from "./lib/EVSEConnector/interfaces"
 import { OCPPTransport, FTPTransport, SFTPTransport } from "./lib/Transport"
 import { ETransportType, EEvent, EReconnectStrategy, EWebSocketProtocol } from "./lib/Transport/interfaces"
+
+import { readDeviceTree } from "./lib/Hardware"
+
+const deviceTree = readDeviceTree('/proc/device-tree');
+fs.writeFileSync('device-tree.json', JSON.stringify(deviceTree, null, 2));
+
+// get hardware ( UART, Serial, ...)
+
 
 const logLevel = 'log';
 const emptyFn = () => {}

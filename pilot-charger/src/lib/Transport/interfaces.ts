@@ -16,12 +16,14 @@ export interface IEnvelope {
 }
 
 export enum EEvent {
-  BOOT_NOTIFICATION   = "BootNotification",
-  STATUS_NOTIFICATION = "StatusNotification",
-  TRANSACTION_START   = "TransactionStart",
-  TRANSACTION_STOP    = "TransactionStop",
-  GET_DIAGNOSTICS     = "GetDiagnostics",
-  CHANGE_AVAILABILITY = "ChangeAvailability"
+  BOOT_NOTIFICATION        = "BootNotification",
+  STATUS_NOTIFICATION      = "StatusNotification",
+  TRANSACTION_START        = "TransactionStart",
+  TRANSACTION_STOP         = "TransactionStop",
+  GET_DIAGNOSTICS          = "GetDiagnostics",
+  CHANGE_AVAILABILITY      = "ChangeAvailability",
+  REMOTE_START_TRANSACTION = "RemoteStartTransaction",
+  REMOTE_STOP_TRANSACTION = "RemoteStopTransaction"
 }
 export enum ETransportType {
   "OCPP1_6J"  = "ocpp1.6",

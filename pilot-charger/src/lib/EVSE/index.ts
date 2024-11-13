@@ -26,6 +26,7 @@ import {
 import { IPayload, Transport, ETransportType, EEvent } from "../Transport/interfaces.ts"
 
 import { EVSEConnector } from  "../EVSEConnector"
+import { EConnectorStatus } from "../EVSEConnector/interfaces"
 import { OCPPTransport, FTPTransport, SFTPTransport } from "../Transport/index.ts"
 import { EventsQueue } from "../Queue"
 
@@ -42,7 +43,7 @@ const validateOptions = options => {
 }
 
 export class EVSE implements IEVSE {
-  availability: EAvailability = EAvailability.OPERATIVE;
+  availability: EAvailability = EAvailability.AVAILABLE;
   connectors: EVSEConnector[] = []
   voltage:EVoltageLevel = EVoltageLevel.AC_LEVEL_2_SINGLE_PHASE
   current:ECurrentLevel = ECurrentLevel.AC_LEVEL_2
@@ -119,8 +120,8 @@ export class EVSE implements IEVSE {
   constructor( options:IEVSEOptions ){
     validateOptions( options )
     this.id = options.id
-    this.serialNumber = options.serialNumber
-    this.connectors = options.connectors
+    this.serialNumber = options.serialNumber;
+    this.connectors = options.connectors.filter( connector => connector instanceof EVSEConnector ) || []
     this.#ocppTransports = typeof options.transport === 'object'
                           ? options.transport.filter( transport => transport instanceof OCPPTransport )
                           : options.transport instanceof OCPPTransport ? [ options.transport ] : []
@@ -165,8 +166,14 @@ export class EVSE implements IEVSE {
     }
   }
   #startUp(){
-    this.#boot()
-    this.#heartbeatSetup()
+    try {
+      this.#boot()
+      this.#heartbeatSetup()
+      this.#emitAvailability()
+    } catch ( e ){
+      console.error( e )
+      throw e
+    }
   }
   async #setupEventsQueue(){
     if ( !this.eventsQueue ){
@@ -184,6 +191,7 @@ export class EVSE implements IEVSE {
     while ( this.eventsQueue.queue && this.eventsQueue.queue.length > 0 ){
       for ( const transport of this.#ocppTransports ) {
         const { method, payload } = await this.eventsQueue.queue.dequeueEvent()
+        console.log("sending queued message:", method, payload)
         await transport.sendMessage(method, payload )
       }
     }
@@ -192,18 +200,48 @@ export class EVSE implements IEVSE {
     transport.on( "OCPP_EVENT", async eventData => {
       if ( !eventData ) return
       if ( transport.centralSystemService.type === ETransportType.OCPP1_6J ){
-        logger.info( "OCPP_EVENT: ", eventData )
         const [ messageType, messageId, eventMethod, eventPayload ] = eventData
+        //logger.info( "OCPP_EVENT: ", [ messageType, messageId, eventMethod, eventPayload ] )
         switch( eventMethod ){
           case EEvent.GET_DIAGNOSTICS:{
             const { location } = eventPayload
-            await this.#sendDiagnostics({ location })
-            transport.sendMessage( EEvent.GET_DIAGNOSTICS, { status: "Accepted", filename: location }, messageId )
+            try{
+              await this.#sendDiagnostics({ location })
+              transport.sendResponse( messageId, { status: "Accepted", filename: location } )
+            } catch ( e ) {
+              console.error( e )
+              transport.sendResponse( messageId, { status: "Rejected" } )
+            }
+            break;
           }
           case EEvent.CHANGE_AVAILABILITY:{
             const { connectorId, type } = eventPayload
-            await this.#updateAvailability( connectorId, type )
-            transport.sendMessage( EEvent.CHANGE_AVAILABILITY, { status: "Accepted" }, messageId )
+            try {
+              await this.#updateAvailability( connectorId, type )
+              transport.sendResponse( messageId, { status: "Accepted" } )
+            } catch ( e ) {
+              console.error( e )
+              transport.sendResponse( messageId, { status: "Rejected" } )
+            }
+            break;
+          }
+          case EEvent.REMOTE_START_TRANSACTION: {
+            const {
+              idTag,
+              connectorId
+            } = eventPayload
+            try {
+              if ( !idTag ) throw new Error( "Missing idTag")
+              if ( !connectorId ) throw new Error( "Missing ConnectorId " )
+              await this.remoteStartTransaction( idTag, connectorId )
+            } catch ( e ) {
+              transport.sendResponse( messageId, { status: "Rejected" } )
+            }
+            break;
+          }
+          case EEvent.REMOTE_STOP_TRANSACTION: {
+            
+            break;
           }
           default: break;
         }
@@ -341,15 +379,85 @@ export class EVSE implements IEVSE {
       filename: ""
     })
   }
+  #emitAvailability():void {
+    this.emit(
+      EEvent.STATUS_NOTIFICATION,
+      {
+        connectorId: 0,
+        status     : this.availability,
+        errorCode  : "NoError",
+        info       : "Charger is " + this.availability,
+        timestamp  : new Date().toISOString()
+      })
+    this.connectors.forEach( ({ id:connectorId, status }) => {
+      console.log( `${connectorId}: ${status}`)
+      this.emit(
+        EEvent.STATUS_NOTIFICATION,
+        {
+          connectorId,
+          status,
+          errorCode: "NoError",
+          info     : `Connector [${ connectorId }] is: ${status}`,
+          timestamp: new Date().toISOString()
+        })
+    })
+  }
   #updateAvailability( connectorId: number, newAvailability: EAvailability ){
+    const availabilityUpdateMap = {
+      [EAvailability.INOPERATIVE]:EAvailability.UNAVAILABLE,
+      [EAvailability.OPERATIVE]:EAvailability.AVAILABLE,
+    }
     if( connectorId === 0 ) {
       if ( !Object.values( EAvailability ).some( type => type === newAvailability ) ){
-        throw new TypeError( )
+        throw new TypeError(`New availablility[${newAvailability}] not accpeted by EVSE` )
       }
-      this.availability = newAvailability
+      if ( this.availability === newAvailability ) {
+        throw new Error( `Cannot change, already set to [${this.availability}]` )
+      }
+      this.availability = availabilityUpdateMap[newAvailability]
     } else {
-      this.connectors.filter( connector => connector.id !== connectorId )[0].updateAvailability( newAvailability )
+      this.connectors.filter( connector => connector.id !== connectorId )[0].updateStatus( availabilityUpdateMap[ newAvailability ] )
     }
+    this.#emitAvailability()
+  }
+  async remoteStartTransaction( idTag: string, connectorId: number ){
+    if ( this.availability === EAvailability.UNAVAILABLE ) throw new Error( "Charger in 'Unavailable' status" )
+
+    const [ connector ]: EVSEConnector[] = this.connectors.filter( c => c.id === connectorId )
+    const connectorStatusInfo = connector.getStatus()
+
+    if ( !connector )                                     throw new Error( `No connector with ID: ${ connectorId }`)
+    if ( connector.status === EConnectorStatus.FAULTED )  throw new Error( "Connector in Status: Faulted" )
+    if ( connector.status === EConnectorStatus.OCCUPIED ) throw new Error( "Connector in Status: Occupied" )
+    if ( connector.status === EConnectorStatus.RESERVED ) throw new Error( "Connector in Status: Reserved" )
+    
+    if ( connectorStatusInfo.isCharging ) throw new Error( `Cannot Start, connector already charging` )
+    
+    if ( !connectorStatusInfo.isConnected ){
+      // set screen value( "awaiting plugged message" )
+      await connector.once( "plugged" )
+    }
+
+    // check local load management
+    // Check building load management
+    // check the grid status (DR)
+    
+    // [ISO15118] check if the vehicle can send power back into the charger
+    // get vehicle SOC
+    // get Vehicle battery capacity, and remaining energy requirement
+    // get max charging voltage and current
+    // get target SoC and desired charging range
+    // get battery temperature
+    // get Charging profile ( charging curve )
+    // get estimated charge time
+    // get battery health and diagnostic information
+    // get power and energy limits
+    // get vehicle idenitification and authentication information [ISO15118, plugNCharge]
+    // get charging mode (ac/dc)
+    // get v2g readiness and vehicle control signal
+
+    // set screen value( "starting charge" )
+    await connector.startCharging()
   }
 }
 export default EVSE

@@ -10,6 +10,7 @@ import {
   ITeslaConnector,
   IGBTConnector,
   EAvailability,
+  EConnectorStatus,
   EConnectorType,
   EIsolationStatus,
   EChargingMode,
@@ -17,11 +18,12 @@ import {
   EGridStatus,
   EDemandResponseStatus
 } from "./interfaces.ts"
+import EventsObject from "../EventsObject"
 
 
-export class EVSEConnector implements IEVSEConnector {
+export class EVSEConnector extends EventsObject implements IEVSEConnector {
   id                   : string | number;
-  availability         : EAvailability;
+  status               : EConnectorStatus       = EConnectorStatus.AVAILABLE;
   connectorType        : EConnectorType;
   maxVoltage           : number                 = 120; // V
   maxCurrent           : number                 = 32;  // A
@@ -39,20 +41,22 @@ export class EVSEConnector implements IEVSEConnector {
   demandResponseStatus : EDemandResponseStatus  = EDemandResponseStatus.NONE;
 
   constructor({ id, connectorType, chargingMode, maxVoltage, maxCurrent, cableLength }:IEVSEConnectorOptions) {
+    super()
     this.id = id;
-    this.connectorType = connectorType;
-    this.maxVoltage = maxVoltage;
-    this.maxCurrent = maxCurrent;
-    this.cableLength = cableLength;
-    this.chargingMode = EChargingMode[chargingMode]
+    this.connectorType = connectorType
+    this.maxVoltage = maxVoltage
+    this.maxCurrent = maxCurrent
+    this.cableLength = cableLength
+    this.chargingMode = EChargingMode[ chargingMode ]
   }
 
   async connect() {
     this.isConnected
-      ? console.log('Vehicle already connected.')
-      : (this.isConnected = true,
-         this.isolationStatus = EIsolationStatus.PLUGGED,
-         console.log(`${this.connectorType} vehicle connected.`));
+      ? console.log( `Connector[${ this.id }] already connected.` )
+      : ( this.isConnected = true,
+          this.isolationStatus = EIsolationStatus.PLUGGED,
+          this.emit( EIsolationStatus.PLUGGED ),
+          console.log( `${this.connectorType} vehicle connected.`));
   }
 
   async disconnect() {
@@ -144,11 +148,11 @@ export class EVSEConnector implements IEVSEConnector {
       demandResponseStatus: this.demandResponseStatus,
     };
   }
-  updateAvailability( newAvailability: EAvailability ){
-    if ( !Object.values( EAvailability ).some( type => type === newAvailability ) ){
-      throw new TypeError(`New availablility[${newAvailability}] not accpeted by connector[${this.id}]`) 
+  updateStatus( newStatus: EConnectorStatus ){
+    if ( !Object.values( EConnectorStatus ).some( type => type === newStatus ) ){
+      throw new TypeError(`New availablility[${newStatus}] not accpeted by connector[${this.id}]`) 
     }
-    this.availability = newAvailability
+    this.status = newStatus
   }
 }
 
