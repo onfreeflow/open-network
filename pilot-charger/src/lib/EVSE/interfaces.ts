@@ -3,34 +3,35 @@
 import { EventsQueue } from "../Queue"
 import { EVSEConnector } from "../EVSEConnector"
 import { Transport } from "../Transport/interfaces"
+import { THardwareModule } from "../Hardware/common/types"
 
 export enum EErrorCode {
-  NO_ERROR = "NoError",
+  NO_ERROR               = "NoError",
   CONNECTOR_LOCK_FAILURE = "ConnectorLockFailure",
-  GROUND_FAILURE = "GroundFailure",
-  OVER_CURRENT_FAILURE = "OverCurrentFailure",
-  POWER_METER_FAILURE = "PowerMeterFailure",
-  POWER_SWITCH_FAILURE = "PowerSwitchFailure",
-  READER_FAILURE = "ReaderFailure",
-  RESET_FAILURE = "ResetFailure",
-  UNDER_VOLTAGE = "UnderVoltage",
-  OVER_VOLTAGE = "OverVoltage",
-  WEAK_SIGNAL = "WeakSignal"
+  GROUND_FAILURE         = "GroundFailure",
+  OVER_CURRENT_FAILURE   = "OverCurrentFailure",
+  POWER_METER_FAILURE    = "PowerMeterFailure",
+  POWER_SWITCH_FAILURE   = "PowerSwitchFailure",
+  READER_FAILURE         = "ReaderFailure",
+  RESET_FAILURE          = "ResetFailure",
+  UNDER_VOLTAGE          = "UnderVoltage",
+  OVER_VOLTAGE           = "OverVoltage",
+  WEAK_SIGNAL            = "WeakSignal"
 }
 
 export enum EPerfMarksFTPUpload {
   FTP_UPLOAD_CONNECTING = "FTP_UPLOAD_CONNECTING",
-  START_FTP_UPLOAD = "START_FTP_UPLOAD",
-  COMPLETE_FTP_UPLOAD = "COMPLETE_FTP_UPLOAD"
+  START_FTP_UPLOAD      = "START_FTP_UPLOAD",
+  COMPLETE_FTP_UPLOAD   = "COMPLETE_FTP_UPLOAD"
 }
 export enum EPerfMeasuresFTPUpload {
   FTP_TIME_TO_CONNECT = "FTP_TIME_TO_CONNECT",
-  FTP_TIME_TO_UPLOAD = "FTP_TIME_TO_UPLOAD"
+  FTP_TIME_TO_UPLOAD  = "FTP_TIME_TO_UPLOAD"
 }
 
 export interface IPayload {
   [key: string]: any;
-  timestamp?: string;
+  timestamp   ?: string;
 }
 export enum EChargingMode {
   AC = 'AC',
@@ -201,15 +202,44 @@ export interface IEVSEOptionsEventsQueue {
   dbType: EEventsQueueDBType;
 }
 
+interface IConnectorRelay extends TPowerRelay {
+
+}
+export interface IHardwareModules {
+  display        : Array<TDisplay | TLED>,
+  powerMeters    : TPowerMeter,
+  evseRelay      : TPowerRelay,
+  connectorRelays: TConnectorRelay[],
+  overloadProtectionRelays: TOverloadProtectionRelay[],
+  communications : {
+    serial  : TSerial[],//RS232, RS485, USB(A/B/C)
+    ble     : TBLE[],
+    rfid    : TRIFD[],
+    nfc     : TNFC[],
+    lora    : TLoRa[],
+    wifi    : TWiFi[],
+    rj45    : TRJ45[],
+    cellular: TCellular[]
+  }
+}
+
+interface ISizeLWH {
+  length: number,
+  width : number, 
+  height: number
+}
+
 export interface IEVSEOptions {
-  id            : string | number;
-  serialNumber  : string;
-  connectors   ?: EVSEConnector[] | EVSEConnector;
-  transport    ?: Transport[];
-  eventsQueue  ?: Omit<IEVSEEventsQueue, "queue">;
-  os           ?: IEVSEOSConfiguration;
-  configuration?: IEVSEConfiguration;
-  manufacturer ?: IEVSEManufacturerConfiguration;
+  id              : string | number;
+  serialNumber    : string;
+  size           ?: ISizeLWH;
+  connectors     ?: EVSEConnector[] | EVSEConnector;
+  transport      ?: Transport[];
+  eventsQueue    ?: Omit<IEVSEEventsQueue, "queue">;
+  os             ?: IEVSEOSConfiguration;
+  hardwareModules?: IHardwareModules;
+  configuration  ?: IEVSEConfiguration;
+  manufacturer   ?: IEVSEManufacturerConfiguration;
 }
 
 // Charging Rate Units

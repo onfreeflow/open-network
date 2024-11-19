@@ -1,6 +1,14 @@
 "use strict"
 
 import { readFileSync, writeFileSync } from "fs"
+import { TPowerMeter }                 from "./lib/Hardware/powermeter/types"
+import { TRelay }                      from "./lib/Hardware/relay/types"
+import { TWiFiModule }                 from "./lib/Hardware/communication/lan/wifi/types"
+import { TNFCModule }                  from "./lib/Hardware/communication/nfc/types"
+import { TRFIDModule }                 from "./lib/Hardware/communication/rfid/types"
+import { TBLEModule }                  from "./lib/Hardware/communication/ble/types"
+import { TZigBeeModule  }              from "./lib/Hardware/communication/zigbee/types"
+
 import { EVSE } from "./lib/EVSE"
 import { EVSEConnector } from "./lib/EVSEConnector"
 import { EConnectorType, EChargingMode } from "./lib/EVSEConnector/interfaces"
@@ -9,15 +17,36 @@ import { ETransportType, EEvent, EReconnectStrategy, EWebSocketProtocol } from "
 
 import { readDeviceTree } from "./lib/Hardware"
 
-const deviceTree = readDeviceTree('/proc/device-tree');
-fs.writeFileSync('device-tree.json', JSON.stringify(deviceTree, null, 2));
+const deviceTree = readDeviceTree( "/proc/device-tree" );
+writeFileSync( "device-tree.json", JSON.stringify( deviceTree, null, 2 ) );
 
-// get hardware ( UART, Serial, ...)
+
+interface ParseDeviceResponse {
+  PowerMeter : TPowerMeter,
+  PlugRelay  : TRelay,
+  EVSERelay  : TRelay,
+  WiFi      ?: TWiFiModule,
+  NFC       ?: TNFCModule,
+  RFID      ?: TRFIDModule, 
+  BLE       ?: TBLEModule,
+  ZigBee    ?: TZigBeeModule
+}
+
+function parseDevices( devices ): ParseDeviceResponse {
+  return { PowerMeter: {
+    serialNumber: "230710280012",
+    totalizer: 0,
+    voltage: 0,
+    deciWatts: 0,
+    deciWattHours: 0
+  } , PlugRelay, EVSERelay } 
+}
+const { PowerMeter, PlugRelay, EVSERelay } = parseDevices( deviceTree )
 
 
 const logLevel = 'log';
 const emptyFn = () => {}
-switch( logLevel){
+switch( logLevel ){
   case 'error': console.warn = emptyFn
   case 'warn' : console.debug = emptyFn
   case 'debug': console.info = emptyFn
@@ -42,6 +71,11 @@ new EVSE({
   ],
   os:{
     logs: [{ name:"TestLog", path:"/usr/src/app/src/test.log" }]
+  },
+  hardwareModules: {
+    powerMeter: new PowerMeter(),
+    connectorRelays: [new ConnectorRelay( 1 ), new ConnectorRelay( 2 ) ],
+
   },
   transport   : [
     // new SFTPTransport({

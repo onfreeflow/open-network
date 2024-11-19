@@ -1,16 +1,8 @@
-import fs from 'fs'
+import { lstatSync, readFileSync, readdirSync } from 'fs'
 
-export function readDeviceTree(nodePath) {
-  const tree = {};
-  const nodes = fs.readdirSync(nodePath);
-  nodes.forEach((node) => {
-    const fullPath = `${nodePath}/${node}`;
-    const stats = fs.lstatSync(fullPath);
-    if (stats.isDirectory()) {
-      tree[node] = readDeviceTree(fullPath);
-    } else {
-      tree[node] = fs.readFileSync(fullPath, 'utf8');
-    }
-  });
-  return tree;
-}
+export const readDeviceTree = ( nodePath:string , fullPath?: string ) =>
+  readdirSync( nodePath ).reduce( ( tree, node ) => (
+    fullPath = `${nodePath}/${node}`,
+    tree[ node ] = lstatSync( fullPath ).isDirectory() ? readDeviceTree( fullPath ) : readFileSync( fullPath, 'utf8' ),
+    tree
+  ), {})
