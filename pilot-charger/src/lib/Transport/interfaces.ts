@@ -36,9 +36,9 @@ export interface IFTPConfiguration {
 }
 
 export interface IReconnectConfiguration {
-  strategy: EReconnectStrategy;
-  timeout : number;
-  attempts: number;
+  strategy?: EReconnectStrategy;
+  timeout ?: number;
+  attempts?: number;
 }
 
 export interface ICentralSystemService {

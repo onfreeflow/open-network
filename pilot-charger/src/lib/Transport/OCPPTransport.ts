@@ -1,22 +1,14 @@
 "use strict"
 
-import {
-  ICentralSystemService,
-  IPayload,
-  IOCPPTransport,
-  IOCPPTransportOptions
-} from "./interfaces"
-import {
-  EEvent,
-  ETransportType,
-  EReconnectStrategy,
-  EWebSocketProtocol
-} from "./enums"
-import { CallEnvelope, ResponseEnvelope, parseWebSocketFrame } from "./Envelope"
 import { randomBytes } from "crypto"
 import { connect as tlsConnect } from "tls"
 import { connect as netConnect } from "net"
 import EventsObject from "../EventsObject"
+
+import { ICentralSystemService, IPayload, IOCPPTransport, IOCPPTransportOptions } from "./interfaces"
+import { EEvent, ETransportType, EReconnectStrategy, EWebSocketProtocol} from "./enums"
+
+import { CallEnvelope, ResponseEnvelope, parseWebSocketFrame } from "./Envelope"
 
 export class OCPPTransport extends EventsObject implements IOCPPTransport {
   events: EEvent[] = Object.values( EEvent )
@@ -32,10 +24,10 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
       attempts: 10
     }
   }
-  #link
+  #link:any
   #linkError:Error|undefined
   #reconnectCount:number = 0
-  constructor(options: IOCPPTransportOptions) {
+  constructor( options: IOCPPTransportOptions ) {
     super()
     this.events = options.events ? options.events : this.events;
 
@@ -95,7 +87,7 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
                     ? netConnect( connectOptions, connectCallback)
                     : tlsConnect( tlsConnectOptions, connectCallback )
       
-      this.#link.on('data', ( data ) => {
+      this.#link.on('data', ( data: any ) => {
         //console.log('📥 Received from server[data:RAW]')
         let event
         const frameData = parseWebSocketFrame( data )
@@ -108,10 +100,10 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
         }
         this.emit( "OCPP_EVENT", event )
       })
-      this.#link.on( "end", ( ...args ) => {
+      this.#link.on( "end", ( ...args:any ) => {
         console.info("END", ...args )
       })
-      this.#link.on( "close", async ( ...args ) => {
+      this.#link.on( "close", async ( ...args:any ) => {
         console.info( "close", ...args )
 
         if ( this.#linkError?.message?.includes( "connect EHOSTUNREACH" ) ){
@@ -124,7 +116,7 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
         
         reject()
       })
-      this.#link.on( "error", ( err ) => {
+      this.#link.on( "error", ( err:Error ) => {
         console.error( err );
         this.#linkError = err
       })

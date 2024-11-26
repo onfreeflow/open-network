@@ -65,12 +65,12 @@ export interface IEVSEProperties {
   powerType      : EPowerType
   meterValue     : number
   id             : string | number;
-  vendorId       : string
-  model          : string
+  vendorId      ?: string
+  model         ?: string
   serialNumber   : string
-  lastHeartbeat  : string
-  location       : string
-  maxPower       : number
+  lastHeartbeat ?: string
+  location      ?: string
+  maxPower      ?: number
   transport      : Transport[]
   eventsQueue    : IEVSEEventsQueue
   configuration  : IEVSEConfiguration

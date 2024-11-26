@@ -1,7 +1,9 @@
 "use strict"
+
 import pkg from "../../../package.json"
 import { readFileSync, statSync, writeFileSync, unlink } from "fs"
 import { performance } from "perf_hooks"
+
 import Logger from "../Logger"
 
 import {
@@ -13,6 +15,7 @@ import {
   IEVSEManufacturerConfiguration,
   IHardwareModules
 } from "./interfaces"
+
 import {
   EAvailability,
   EChargingScheduleAllowedChargingRateUnit,
@@ -26,18 +29,18 @@ import {
   EPerfMarksFTPUpload,
   EPerfMeasuresFTPUpload
 } from "./enums"
-import { ETransportType, EEvent } from "../Transport/enums"
-import { IPayload, Transport } from "../Transport/interfaces"
-
-import { EVSEConnector } from  "../EVSEConnector"
-import { EConnectorStatus } from "../EVSEConnector/enums"
+import { EventsQueue }                                from "../Queue"
+import { EVSEConnector }                              from  "../EVSEConnector"
+import { EConnectorStatus }                           from "../EVSEConnector/enums"
 import { OCPPTransport, FTPTransport, SFTPTransport } from "../Transport"
-import { EventsQueue } from "../Queue"
+import { ETransportType, EEvent }                     from "../Transport/enums"
+import { IPayload, Transport }                        from "../Transport/interfaces"
 
-const logger = new Logger(/*{out:"./logs/ocpp_log.log"}*/)
+const logger = new Logger( /*{out:"./logs/ocpp_log.log"}*/ )
+
 // TODO: Abstract Logger, and set in options of base objects
 // TODO: Add output file, and file rotation to logging
-const validateOptions = options => {
+const validateOptions = (options: any) => {
   switch( true ) {
     case !options.id && typeof options.id !== 'number': throw SyntaxError( "EVSEBase Constructor: Options argument is missing required property(id)" );
     case !options.serialNumber                        : throw SyntaxError( "EVSEBase Constructor: Options argument is missing required property(serialNumber)" );
@@ -54,13 +57,13 @@ export class EVSE implements IEVSE {
   powerType:EPowerType = EPowerType.SPLIT_PHASE_AC
   meterValue:number = 0
   id: string | number
-  vendorId: string
-  model: string
+  vendorId: string | undefined
+  model: string | undefined
   serialNumber: string
-  lastHeartbeat: string
-  location: string
-  maxPower: number
-  transport: Transport[]
+  lastHeartbeat: string | undefined
+  location: string | undefined
+  maxPower: number | undefined
+  transport: Transport[] = []
   eventsQueue: IEVSEEventsQueue = {
     queue: null,
     dbType: EEventsQueueDBType.MEMORY,
