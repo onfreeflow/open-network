@@ -26,10 +26,10 @@ export class LED implements TLED{
     this.name = name || ""
     this.description = description || ""
   }
-  setColor( color: EColor ){
+  setColor( color: EColor ): void{
     this.#color = color
   }
-  isActive(){
+  isActive(): boolean{
     return this.#active
   }
   get solid(): TLED {
@@ -41,10 +41,10 @@ export class LED implements TLED{
   get blinkFast(): TLED {
     return ( this.#pattern = ELEDPattern.BLINK_FAST, this )
   }
-  on(){
+  on(): void{
     this.#active = true
   }
-  off(){
+  off(): void{
     this.#active = false
   }
 }

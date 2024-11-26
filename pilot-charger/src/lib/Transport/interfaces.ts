@@ -66,8 +66,6 @@ export interface IOCPPTransport {
   disconnect(): Promise<void>;
   sendMessage(method: string, payload: IPayload | undefined, messageId?: string ): Promise<void>;
   isConnected():boolean;
-  on(method: string, callback: (data: any) => void): void;
-  off(method: string): void;
 }
 export interface IFTPTransportOptions {
   host   : string;

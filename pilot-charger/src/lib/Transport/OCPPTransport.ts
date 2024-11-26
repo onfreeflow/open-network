@@ -4,12 +4,14 @@ import {
   ICentralSystemService,
   IPayload,
   IOCPPTransport,
-  IOCPPTransportOptions,
+  IOCPPTransportOptions
+} from "./interfaces"
+import {
   EEvent,
   ETransportType,
   EReconnectStrategy,
   EWebSocketProtocol
-} from "./interfaces"
+} from "./enums"
 import { CallEnvelope, ResponseEnvelope, parseWebSocketFrame } from "./Envelope"
 import { randomBytes } from "crypto"
 import { connect as tlsConnect } from "tls"

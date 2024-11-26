@@ -1,23 +1,29 @@
 "use strict"
 import "./log"
-import { readFileSync, writeFileSync }                     from "fs"
-import { ECurrentType }                                    from "./lib/Hardware/common/enums"
-import { PowerMeterModule }                                from "./lib/Hardware/powermeter"
-import { IPowerMeterConfiguration }                        from "./lib/Hardware/powermeter/interfaces"
-import { OverCurrentRelay, PowerRelay }                    from "./lib/Hardware/relay"
-import { ERelayType, ERelayPosition, ERelayContacts }      from "./lib/Hardware/relay/enums"
-import { TRelay }                                          from "./lib/Hardware/relay/types"
-import { ESwitchType }                                     from "./lib/Hardware/switch/enums"
-import { TBLEModule }                                      from "./lib/Hardware/communication/ble/types"
-import { TWiFiModule }                                     from "./lib/Hardware/communication/wifi/types"
-import { RedLED, GreenLED, MultiColorLED, YellowLEDStrip } from "./lib/Hardware/led"
-import { RedLEDStrip, GreenLEDStrip, MultiColorLEDStrip }  from "./lib/Hardware/led"
+import { readFileSync, writeFileSync }                from "fs"
 
-import { EVSE }                                                           from "./lib/EVSE"
-import { EVSEConnector }                                                  from "./lib/EVSEConnector"
-import { EConnectorType, EChargingMode }                                  from "./lib/EVSEConnector/enums"
-import { OCPPTransport, FTPTransport, SFTPTransport }                     from "./lib/Transport"
-import { ETransportType, EEvent, EReconnectStrategy, EWebSocketProtocol } from "./lib/Transport/enums"
+import { ECurrentType }                               from "./lib/Hardware/common/enums"
+import { PowerMeterModule }                           from "./lib/Hardware/powermeter"
+import { IPowerMeterConfiguration }                   from "./lib/Hardware/powermeter/interfaces"
+import { OverCurrentRelay, PowerRelay }               from "./lib/Hardware/relay"
+import { ERelayType, ERelayPosition, ERelayContacts } from "./lib/Hardware/relay/enums"
+import { TRelay }                                     from "./lib/Hardware/relay/types"
+import { ESwitchType }                                from "./lib/Hardware/switch/enums"
+import { TBLEModule }                                 from "./lib/Hardware/communication/ble/types"
+import { TWiFiModule }                                from "./lib/Hardware/communication/wifi/types"
+import {
+  RedLED, GreenLED, MultiColorLED, YellowLEDStrip,
+  RedLEDStrip, GreenLEDStrip, MultiColorLEDStrip
+} from "./lib/Hardware/led"
+
+import { EVSE }                                       from "./lib/EVSE"
+import { EVSEConnector }                              from "./lib/EVSEConnector"
+import { EConnectorType, EChargingMode }              from "./lib/EVSEConnector/enums"
+import { OCPPTransport, FTPTransport, SFTPTransport } from "./lib/Transport"
+import {
+  ETransportType, EEvent,
+  EReconnectStrategy, EWebSocketProtocol
+} from "./lib/Transport/enums"
 
 import { readDeviceTree } from "./lib/Hardware"
 
@@ -135,12 +141,9 @@ new EVSE({
     logs: [{ name: "TestLog", path:"/usr/src/app/src/test.log" }]
   },
   hardwareModules: {
-    powerMeters: Object.values(powerMeter),
-    connectorRelays: [relay.TWO, relay.THREE],
+    powerMeters: Object.values( powerMeter ),
+    connectorRelays: [ relay.TWO, relay.THREE ],
     hmis:{
-      // buttons     : [],
-      // screens     : [ new TFTDisplay( /*resolution*/ ) ],
-      // touchScreens: [],
       indicators   : {
         power    : led.single.red.solid,
         active   : led.single.red.solid,
@@ -155,9 +158,9 @@ new EVSE({
     evseRelays              : [ relay.ONE ],
     overloadProtectionRelays: [ relay.ZERO ],
     communications          : {
-      serial  : [],
-      wifi    : [],
-      rj45    : []
+      serial: [],
+      wifi  : [],
+      rj45  : []
     }
   },
   transport   : [
@@ -168,10 +171,10 @@ new EVSE({
     //   pass  : "cjQG3jqVMz2x3mF83DhCzuOwecyaXenj"
     // }),
     new FTPTransport({
-      host  : "eu-central-1.sftpcloud.io",
-      port  : 21,
-      user  : "247d21666ad84822a3c104d218707806",
-      pass  : "dV3Nl2HJR7revEy0OJhXLsbeSonBZ5Cv"
+      host: "eu-central-1.sftpcloud.io",
+      port: 21,
+      user: "247d21666ad84822a3c104d218707806",
+      pass: "dV3Nl2HJR7revEy0OJhXLsbeSonBZ5Cv"
     }),
     new OCPPTransport({
       centralSystemService:{
@@ -198,7 +201,7 @@ new EVSE({
     //     },
     //     reconnect:{
     //       strategy: EReconnectStrategy.LINEAR,
-    //       timeout: 1000,
+    //       timeout : 1000,
     //       attempts: 10
     //     }
     //   },

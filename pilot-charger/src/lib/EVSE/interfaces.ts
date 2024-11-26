@@ -90,20 +90,20 @@ interface IConnectorRelay extends TPowerRelay {
 
 }
 export interface IIndicators {
-  active    : TLED,
+  active   ?: TLED,
   charging ?: TLED,
   error    ?: TLED,
   faulted  ?: TLED,
-  inactive  : TLED
+  inactive ?: TLED
   preparing?: TLED,
-  power     : TLED,
+  power    ?: TLED,
   updating ?: TLED,
 }
 export interface IHMIs {
   buttons     ?: [],
   screens     ?: TDisplay[],
   touchScreens?: TDisplay[],
-  indicators   : IIndicators
+  indicators  ?: IIndicators
 }
 export interface IHardwareModules {
   hmis                    : IHMIs,
@@ -133,7 +133,7 @@ export interface IEVSEOptions {
   id              : string | number;
   serialNumber    : string;
   size           ?: ISizeLWH;
-  connectors     ?: EVSEConnector[] | EVSEConnector;
+  connectors     ?: EVSEConnector[];
   transport      ?: Transport[];
   eventsQueue    ?: Omit<IEVSEEventsQueue, "queue">;
   os             ?: IEVSEOSConfiguration;

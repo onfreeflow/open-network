@@ -53,7 +53,7 @@ export class EVSE implements IEVSE {
   current:ECurrentLevel = ECurrentLevel.AC_LEVEL_2
   powerType:EPowerType = EPowerType.SPLIT_PHASE_AC
   meterValue:number = 0
-  id: number
+  id: string | number
   vendorId: string
   model: string
   serialNumber: string
@@ -116,15 +116,11 @@ export class EVSE implements IEVSE {
   }
   hardwareModules: IHardwareModules = {
     powerMeters             : [],
-    evseRelay               : undefined,
+    evseRelays              : [],
     connectorRelays         : [],
     overloadProtectionRelays: [],
     hmis                    : {
-      indicators: {
-        power   : undefined,
-        active  : undefined,
-        inactive: undefined
-      }
+      indicators: { power: undefined, active: undefined, inactive: undefined }
     },
     communications          : {
       serial  :[],
@@ -148,7 +144,7 @@ export class EVSE implements IEVSE {
     validateOptions( options )
     this.id = options.id
     this.serialNumber = options.serialNumber;
-    this.connectors = options.connectors.filter( connector => connector instanceof EVSEConnector ) || []
+    this.connectors = options.connectors.filter( connector => connector instanceof EVSEConnector ) as EVSEConnector[] || []
     this.#ocppTransports = typeof options.transport === 'object'
                           ? options.transport.filter( transport => transport instanceof OCPPTransport )
                           : options.transport instanceof OCPPTransport ? [ options.transport ] : []
