@@ -32,13 +32,13 @@ export class LED implements TLED{
   isActive(){
     return this.#active
   }
-  solid(){
+  get solid(): TLED {
     return ( this.#pattern = ELEDPattern.SOLID, this )
   }
-  blinkSlow(){
+  get blinkSlow(): TLED {
     return ( this.#pattern = ELEDPattern.BLINK_SLOW, this )
   }
-  blinkFast(){
+  get blinkFast(): TLED {
     return ( this.#pattern = ELEDPattern.BLINK_FAST, this )
   }
   on(){
@@ -63,10 +63,10 @@ export class WhiteLED  extends LED implements TLED {}
 @ColoredLED( EColor.MULTI, 4, 3 )
 
 export class MultiColorLED extends LED implements LED {
-  red(){    return ( this.setColor( EColor.RED )   , this ) }
-  blue(){   return ( this.setColor( EColor.BLUE )  , this ) }
-  green(){  return ( this.setColor( EColor.GREEN ) , this ) }
-  yellow(){ return ( this.setColor( EColor.YELLOW ), this ) }
+  get red()   : TLED { return ( this.setColor( EColor.RED )   , this ) }
+  get blue()  : TLED { return ( this.setColor( EColor.BLUE )  , this ) }
+  get green() : TLED { return ( this.setColor( EColor.GREEN ) , this ) }
+  get yellow(): TLED { return ( this.setColor( EColor.YELLOW ), this ) }
 }
 
 
@@ -86,8 +86,6 @@ export class RedLEDStrip        extends LEDStrip      implements TLEDStrip {}
 @ColoredLEDStrip( EColor.GREEN, 4 )
 export class GreenLEDStrip      extends LEDStrip      implements TLEDStrip {}
 @ColoredLEDStrip( EColor.YELLOW, 4 )
-export class YellowLEDStrip      extends LEDStrip      implements TLEDStrip {}
+export class YellowLEDStrip      extends LEDStrip     implements TLEDStrip {}
 @ColoredLEDStrip( EColor.MULTI, 4 )
-export class MultiColorLEDStrip extends MultiColorLED implements TLEDStrip {
-
-}
+export class MultiColorLEDStrip extends MultiColorLED implements TLEDStrip {}

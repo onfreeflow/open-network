@@ -17,7 +17,7 @@ import { EVSE }                                                           from "
 import { EVSEConnector }                                                  from "./lib/EVSEConnector"
 import { EConnectorType, EChargingMode }                                  from "./lib/EVSEConnector/enums"
 import { OCPPTransport, FTPTransport, SFTPTransport }                     from "./lib/Transport"
-import { ETransportType, EEvent, EReconnectStrategy, EWebSocketProtocol } from "./lib/Transport/interfaces"
+import { ETransportType, EEvent, EReconnectStrategy, EWebSocketProtocol } from "./lib/Transport/enums"
 
 import { readDeviceTree } from "./lib/Hardware"
 
@@ -142,14 +142,14 @@ new EVSE({
       // screens     : [ new TFTDisplay( /*resolution*/ ) ],
       // touchScreens: [],
       indicators   : {
-        power      : led.single.red.solid,
-        active     : led.single.red.solid,
-        preparing  : led.single.red.blinkFast,
-        charging   : led.single.red.blinkSlow,
-        error      : led.strip.red.blinkSlow,
-        faulted    : led.strip.red.solid,
-        updating   : led.strip.yellow.blinkFast,
-        unavailable: led.strip.red.blinkSlow
+        power    : led.single.red.solid,
+        active   : led.single.red.solid,
+        preparing: led.single.red.blinkFast,
+        charging : led.single.red.blinkSlow,
+        error    : led.strip.red.blinkSlow,
+        faulted  : led.strip.red.solid,
+        updating : led.strip.yellow.blinkFast,
+        inactive : led.strip.red.blinkSlow
       }
     },
     evseRelays              : [ relay.ONE ],

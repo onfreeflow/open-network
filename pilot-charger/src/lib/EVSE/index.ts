@@ -11,7 +11,7 @@ import {
   IEVSEOptions,
   IEVSEOSConfiguration,
   IEVSEManufacturerConfiguration,
-  IIndicators
+  IHardwareModules
 } from "./interfaces"
 import {
   EAvailability,
@@ -114,14 +114,19 @@ export class EVSE implements IEVSE {
     voltageLimit        : null,
     currentLimit        : null
   }
-  hardwareModules = {
-    displays                : Array<TDisplay | TLED>,
-    indicators              : IIndicator,
-    powerMeters             : TPowerMeter[],
-    evseRelay               : TPowerRelay,
-    connectorRelays         : TConnectorRelay[],
-    overloadProtectionRelays: TOverloadProtectionRelay[],
-    communications : {
+  hardwareModules: IHardwareModules = {
+    powerMeters             : [],
+    evseRelay               : undefined,
+    connectorRelays         : [],
+    overloadProtectionRelays: [],
+    hmis                    : {
+      indicators: {
+        power   : undefined,
+        active  : undefined,
+        inactive: undefined
+      }
+    },
+    communications          : {
       serial  :[],
       ble     :[],
       rfid    :[],

@@ -89,17 +89,17 @@ export interface IEVSEOptionsEventsQueue {
 interface IConnectorRelay extends TPowerRelay {
 
 }
-interface IIndicators {
-  power      : TLED,
-  active     : TLED,
-  preparing ?: TLED,
-  charging  ?: TLED,
-  error     ?: TLED,
-  faulted   ?: TLED,
-  updating  ?: TLED,
-  unavailable: TLED
+export interface IIndicators {
+  active    : TLED,
+  charging ?: TLED,
+  error    ?: TLED,
+  faulted  ?: TLED,
+  inactive  : TLED
+  preparing?: TLED,
+  power     : TLED,
+  updating ?: TLED,
 }
-interface IHMIs {
+export interface IHMIs {
   buttons     ?: [],
   screens     ?: TDisplay[],
   touchScreens?: TDisplay[],
