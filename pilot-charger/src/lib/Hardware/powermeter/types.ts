@@ -1,6 +1,6 @@
-import { THardwareModule } from "../common/types"
-import { deciwatts, volts, deciwatthours } from "../common/types"
-import { TDisplay } from "../display/types"
+"use strict"
+
 import { IPowerMeter } from "./interfaces"
 
+/** @inheritdoc */
 export type TPowerMeter = IPowerMeter;

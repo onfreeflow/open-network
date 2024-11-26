@@ -1,4 +1,8 @@
 "use strict"
+import { IHardwareModule } from "./interfaces"
+
+
+export type THardwareModule = IHardwareModule
 
 export type volts         = number;
 export type deciwatts     = number; 
@@ -13,15 +17,4 @@ export type fahrenheit    = temperature;
 export type celsius       = temperature;
 export type ohms          = number;
 
-import { EHardwareInterface } from "./enums"
-
-export type THardwareModule = {
-  hardwareInterfaces?: EHardwareInterface[],
-  serialNumber       : string,
-  name              ?: string,
-  devicePowerConsumption  ?: {
-    standby  ?: watts,
-    deepSleep?: watts,
-    active   ?: watts
-  }
-}
+export type TBaudRate = 2400 | 4800 | 9600 | 14400 | 19200 | 38400;

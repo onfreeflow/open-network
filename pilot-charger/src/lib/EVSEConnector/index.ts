@@ -1,14 +1,19 @@
 "use strict"
 import {
-  IEVSEConnector,
   IEVSEConnectorOptions,
-  IType1Connector,
-  IType2Connector,
-  IType3Connector,
-  ICCSConnector,
-  ICHAdeMOConnector,
-  ITeslaConnector,
-  IGBTConnector,
+  IEVSEConnectorRelays
+} from "./interfaces"
+import {
+  TEVSEConnector,
+  TType1Connector,
+  TType2Connector,
+  TType3Connector,
+  TCCSConnector,
+  TCHAdeMOConnector,
+  TTeslaConnector,
+  TGBTConnector
+} from "./types"
+import {
   EAvailability,
   EConnectorStatus,
   EConnectorType,
@@ -17,12 +22,13 @@ import {
   ECommunicationProtocol,
   EGridStatus,
   EDemandResponseStatus
-} from "./interfaces.ts"
+} from "./enums"
+import { TPowerMeter } from "../Hardware/powermeter/types" 
 import EventsObject from "../EventsObject"
 
 
-export class EVSEConnector extends EventsObject implements IEVSEConnector {
-  id                   : string | number;
+export class EVSEConnector extends EventsObject implements TEVSEConnector, EventsObject {
+  id                   : string | number | symbol;
   status               : EConnectorStatus       = EConnectorStatus.AVAILABLE;
   connectorType        : EConnectorType;
   maxVoltage           : number                 = 120; // V
@@ -39,20 +45,19 @@ export class EVSEConnector extends EventsObject implements IEVSEConnector {
   energyPrice          : number                 = 0.15;
   gridStatus           : EGridStatus            = EGridStatus.NOMINAL;
   demandResponseStatus : EDemandResponseStatus  = EDemandResponseStatus.NONE;
+  powerMeters          : TPowerMeter[];
+  relays               : IEVSEConnectorRelays;
 
-  constructor({ id, connectorType, chargingMode, maxVoltage, maxCurrent, cableLength }:IEVSEConnectorOptions) {
+  constructor( configuration:IEVSEConnectorOptions ) {
     super()
-    this.id = id;
-    this.connectorType = connectorType
-    this.maxVoltage = maxVoltage
-    this.maxCurrent = maxCurrent
-    this.cableLength = cableLength
-    this.chargingMode = EChargingMode[ chargingMode ]
+    Object.entries( configuration )
+          .forEach(
+            ( [ key, value ] ) => this[ key ] = value
+          )
   }
-
   async connect() {
     this.isConnected
-      ? console.log( `Connector[${ this.id }] already connected.` )
+      ? console.log( `Connector[${ typeof this.id === "symbol" ? this.id.description : this.id }] already connected.` )
       : ( this.isConnected = true,
           this.isolationStatus = EIsolationStatus.PLUGGED,
           this.emit( EIsolationStatus.PLUGGED ),
@@ -156,34 +161,34 @@ export class EVSEConnector extends EventsObject implements IEVSEConnector {
   }
 }
 
-export class Type1Connector extends EVSEConnector implements IType1Connector {
+export class Type1Connector extends EVSEConnector implements TType1Connector {
   declare connectorType: EConnectorType.TYPE1;
   declare communicationProtocol: ECommunicationProtocol.SAE_J1772;
 }
-export class Type2Connector extends EVSEConnector implements IType2Connector{
+export class Type2Connector extends EVSEConnector implements TType2Connector{
   declare connectorType: EConnectorType.TYPE2;
   declare communicationProtocol: ECommunicationProtocol.IEC_62196_2;
 }
-export class Type3Connector extends EVSEConnector implements IType3Connector{
+export class Type3Connector extends EVSEConnector implements TType3Connector{
   declare connectorType: EConnectorType.TYPE3;
   declare chargingMode: EChargingMode.DC;
   declare communicationProtocol: ECommunicationProtocol.TYPE3;
 }
-export class CCSConnector extends EVSEConnector implements ICCSConnector{
+export class CCSConnector extends EVSEConnector implements TCCSConnector{
   declare connectorType: EConnectorType.CCS1 | EConnectorType.CCS2;
   declare chargingMode: EChargingMode.DC;
   declare communicationProtocol: ECommunicationProtocol.ISO_15118;
 }
-export class CHAdeMOConnector extends EVSEConnector implements ICHAdeMOConnector{
+export class CHAdeMOConnector extends EVSEConnector implements TCHAdeMOConnector{
   declare connectorType: EConnectorType.CHADEMO;
   declare chargingMode: EChargingMode.DC;
   declare communicationProtocol: ECommunicationProtocol.CHADEMO;
 }
-export class TeslaConnector extends EVSEConnector implements ITeslaConnector{
+export class TeslaConnector extends EVSEConnector implements TTeslaConnector{
   declare connectorType: EConnectorType.TESLA;
   declare communicationProtocol: ECommunicationProtocol.TESLA;
 }
-export class GBTConnector extends EVSEConnector implements IGBTConnector{
+export class GBTConnector extends EVSEConnector implements TGBTConnector{
   declare connectorType: EConnectorType.GB_T;
   declare communicationProtocol: ECommunicationProtocol.GB_T;
 }

@@ -2,7 +2,9 @@
 
 export enum ECurrentType {
   ALTERNATING_CURRENT = "ALTERNATING_CURRENT",
-  DIRECT_CURRENT = "DIRECT_CURRENT"
+  DIRECT_CURRENT      = "DIRECT_CURRENT",
+  AC                  = "ALTERNATING_CURRENT",
+  DC                  = "DIRECT_CURRENT"
 }
 
 export enum EHardwareInterface {
@@ -14,9 +16,11 @@ export enum EHardwareInterface {
 }
 
 export enum EColor {
-  RED = "RED",
-  GREEN = "GREEN",
-  BLUE = "BLUE",
-  WHITE = "WHITE",
-  YELLOW = "YELLOW"
+  RED    = "RED",
+  GREEN  = "GREEN",
+  BLUE   = "BLUE",
+  WHITE  = "WHITE",
+  YELLOW = "YELLOW",
+  PURPLE = "PURPLE",
+  MULTI  = "MULTICOLOR"
 }

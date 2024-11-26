@@ -2,8 +2,17 @@
 import pkg from "../../../package.json"
 import { readFileSync, statSync, writeFileSync, unlink } from "fs"
 import { performance } from "perf_hooks"
-import Logger from "../Logger.ts"
+import Logger from "../Logger"
 
+import {
+  IEVSE,
+  IEVSEConfiguration,
+  IEVSEEventsQueue,
+  IEVSEOptions,
+  IEVSEOSConfiguration,
+  IEVSEManufacturerConfiguration,
+  IIndicators
+} from "./interfaces"
 import {
   EAvailability,
   EChargingScheduleAllowedChargingRateUnit,
@@ -14,20 +23,15 @@ import {
   ENetworkModeEVSE,
   EPowerType,
   EVoltageLevel,
-  IEVSE,
-  IEVSEConfiguration,
-  IEVSEEventsQueue,
-  IEVSEOptions,
-  IEVSEOSConfiguration,
-  IEVSEManufacturerConfiguration,
   EPerfMarksFTPUpload,
   EPerfMeasuresFTPUpload
-} from "./interfaces.ts"
-import { IPayload, Transport, ETransportType, EEvent } from "../Transport/interfaces.ts"
+} from "./enums"
+import { ETransportType, EEvent } from "../Transport/enums"
+import { IPayload, Transport } from "../Transport/interfaces"
 
 import { EVSEConnector } from  "../EVSEConnector"
-import { EConnectorStatus } from "../EVSEConnector/interfaces"
-import { OCPPTransport, FTPTransport, SFTPTransport } from "../Transport/index.ts"
+import { EConnectorStatus } from "../EVSEConnector/enums"
+import { OCPPTransport, FTPTransport, SFTPTransport } from "../Transport"
 import { EventsQueue } from "../Queue"
 
 const logger = new Logger(/*{out:"./logs/ocpp_log.log"}*/)
@@ -110,6 +114,24 @@ export class EVSE implements IEVSE {
     voltageLimit        : null,
     currentLimit        : null
   }
+  hardwareModules = {
+    displays                : Array<TDisplay | TLED>,
+    indicators              : IIndicator,
+    powerMeters             : TPowerMeter[],
+    evseRelay               : TPowerRelay,
+    connectorRelays         : TConnectorRelay[],
+    overloadProtectionRelays: TOverloadProtectionRelay[],
+    communications : {
+      serial  :[],
+      ble     :[],
+      rfid    :[],
+      nfc     :[],
+      lora    :[],
+      wifi    :[],
+      rj45    :[],
+      cellular:[]
+    }
+  }
   
   #ocppTransports: OCPPTransport[]
   #ftpTransports : Array<FTPTransport|SFTPTransport>
@@ -132,6 +154,7 @@ export class EVSE implements IEVSE {
     this.eventsQueue = { ...this.eventsQueue, ...options.eventsQueue }
     this.os = { ...this.os, ...options.os }
     this.manufacturer = { ...this.manufacturer, ...options.manufacturer }
+    this.hardwareModules = { ...this.hardwareModules, ...options.hardwareModules }
 
     if ( !(this instanceof EVSE ) ) {
       return new EVSE( options )

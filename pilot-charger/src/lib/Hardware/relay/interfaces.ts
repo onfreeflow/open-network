@@ -1,28 +1,29 @@
 "use strict"
 
-export enum ERelayContacts {
-  COIL_P = "COIL_P",
-  COIL_N = "COIL_N",
-  COMMON = "COMMON",
-  NORMALLY_OPEN = "NORMALLY_OPEN",
-  NORMALLY_CLOSED = "NORMALLY_CLOSED",
-  C = "COMMON",
-  NO = "NORMALLY_OPEN",
-  NC = "NORMALLY_CLOSED"
+import { THardwareModule} from "../common/types"
+import { ECurrentType } from "../common/enums"
+import { ESwitchType } from "../switch/enums"
+import { ERelayContacts, ERelayPosition, ERelayType } from "./enums"
+
+export interface IRelay extends THardwareModule {
+  type           : ERelayType,      
+  switchType     : ESwitchType,     
+  contacts       : ERelayContacts[],
+  position       : ERelayPosition,  
+  coilVoltage    : number,          
+  coilCurrentType: ECurrentType,    
+  loadCurrent    : number,          
+  loadCurrentType: ECurrentType,    
+  loadVoltage    : number           
 }
-export enum ERelayPosition {
-  OPEN = "OPEN",
-  CLOSED = "CLOSED"
-}
-export enum ERelayType {
-  ELECTROMAGNETIC     = "ELECTROMAGNETIC",
-  EM                  = "ELECTROMAGNETIC",
-  SOLID_STATE         = "ELECTROMAGNETIC",
-  SS                  = "ELECTROMAGNETIC",
-  HYBRID              = "HYBRID",
-  REED                = "REED",
-  LATCHING            = "LATCHING",
-  TIME_DELAY          = "TIME_DELAY",
-  OVERLOAD_PROTECTION = "OVERLOAD_PROTECTION",
-  POWER               = "POWER"
+
+export interface IRelayConfiguration {
+  switchType     : ESwitchType,     
+  contacts       : ERelayContacts[],
+  position       : ERelayPosition,  
+  coilVoltage    : number,          
+  coilCurrentType: ECurrentType,    
+  loadCurrent    : number,          
+  loadCurrentType: ECurrentType,    
+  loadVoltage    : number           
 }
