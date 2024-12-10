@@ -1,0 +1,33 @@
+{
+  "name": "screen-renderer",
+  "version": "0.0.1",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "build": "npm run clean && npm i && esbuild ./src/index.ts --bundle --outfile=dist/bundle.js --platform=node --sourcemap  && cp -r src/public dist/ && rm -rf node_modules",
+    "clean": "rm -rf dist",
+    "prestart": "npx pm2 kill && npx pm2 flush",
+    "start": "npx pm2 start -f --time --no-daemon ./dist/bundle.js -i 1"
+  },
+  "engines": {
+    "node": ">=22.9.0",
+    "npm": ">=10.8.3"
+  },
+  "dependencies": {
+    "puppeteer": "^23.10.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "eslint": "^9.9.1",
+    "eslint-webpack-plugin": "^4.2.0",
+    "exports-loader": "^5.0.0",
+    "mocha": "^10.7.3",
+    "rimraf": "^6.0.1",
+    "sinon": "^18.0.0",
+    "tcomb": "^3.2.29",
+    "terser-webpack-plugin": "^5.3.10",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.7.2"
+  },
+  "author": "",
+  "license": "MIT"
+}

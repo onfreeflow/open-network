@@ -1,0 +1,24 @@
+KEYMAPOPTS="us us"
+HOSTNAMEOPTS="-n life.ho2.ezcharge.evse.1-2024-b1-00001"
+INTERFACESOPTS="auto lo
+iface lo inet loopback
+
+auto wlan0
+iface wlan0 inet dhcp
+    wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+"
+
+TIMEZONEOPTS="-z UTC"
+PROXYOPTS="none"
+APKREPOSOPTS="-1
+https://dl-cdn.alpinelinux.org/alpine/v3.18/main
+https://dl-cdn.alpinelinux.org/alpine/v3.18/community"
+SSHDOPTS="-c openssh"
+NTPOPTS="-c chrony"
+
+USEROPTS="-a -u -g audio,video,netdev juser"
+
+APKCACHEOPTS="/media/mmcblk0/apks"
+
+DISKOPTS="-m sys /dev/mmcblk0"
+USEBOOTMEDIA="y"

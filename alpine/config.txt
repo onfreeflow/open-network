@@ -1,0 +1,36 @@
+# do not modify this file as it will be overwritten on upgrade.
+# create and/or modify usercfg.txt instead.
+# https://www.raspberrypi.com/documentation/computers/config_txt.html
+
+kernel=boot/vmlinuz-rpi
+initramfs boot/initramfs-rpi
+arm_64bit=1
+
+dtparam=audio=on
+
+camera_auto_detect=1
+display_auto_detect=1
+
+auto_intramfs=1
+
+disable_fw_kms_setup=1
+
+disable_overscan=1
+
+arm_boost=1
+
+otg_mode=1
+
+dtoverlay=dwc2,dr_mode=host
+
+dtoverlay=vc4-kms-v3d
+max_framebuffers=2
+
+dtoverlay=vc4-kms-dpi-generic
+dtparam=hactive=480,hfp=41,hsync=20,hbp=60
+dtparam=vactive=800,vfp=5,vsync=10,vbp=10
+dtparam=clock-frequency=29750000
+dtparam=hsync-invert,vsync-invert,pixclk-invert
+dtparam=rgb666-padhi
+dtparam=backlight-gpio=18
+gpio=18=op,dh,pd
