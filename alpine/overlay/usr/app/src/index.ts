@@ -13,18 +13,20 @@ const BOTTOM_HEIGHT = SCREEN_HEIGHT * .32
 
 // Define regions
 const
-  bottomLeftRegion = new Region({ name: "bottom-left", width: BOTTOM_LEFT_WIDTH }),
-  bottomRightRegion = new Region({ name: "bottom-right", left: BOTTOM_LEFT_WIDTH, width: BOTTOM_RIGHT_WIDTH }),
-  bottomRegion = new Region({
+  filePath          = join( __dirname, "./public/regions"),
+  bottomLeftRegion  = new Region({ name: "bottom-left", content: "Bottom Left", width: BOTTOM_LEFT_WIDTH }),
+  bottomRightRegion = new Region({ name: "bottom-right", path: filePath, left: BOTTOM_LEFT_WIDTH, width: BOTTOM_RIGHT_WIDTH }),
+  bottomRegion      = new Region({
     name         : "bottom",
+    path         : filePath,
     top          : 320,
     height       : BOTTOM_HEIGHT,
     nestedRegions: [ bottomLeftRegion, bottomRightRegion ]
   }),
-  topRegion = new Region({ name: "top", height: TOP_HEIGHT, }),
-  rootRegion = new Region({
+  topRegion         = new Region({ name: "top", path: filePath, height: TOP_HEIGHT, }),
+  rootRegion        = new Region({
     name         : "index",
-    path         : join( __dirname, "./public/regions"),
+    path         : filePath,
     width        : SCREEN_WIDTH,
     height       : SCREEN_HEIGHT,
     nestedRegions: [ topRegion, bottomRegion ]

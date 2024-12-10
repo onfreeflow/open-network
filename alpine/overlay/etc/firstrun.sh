@@ -9,8 +9,8 @@ set -x  # Enable debugging output
 echo "Starting first run!"
 
 # Define marker file location
-MARKER_FILE="/mnt/tmp/firstrun-done"
-MARKER_FILE_2="/mnt/tmp/setup-complete"
+MARKER_FILE="/tmp/firstrun-done"
+MARKER_FILE_2="/tmp/setup-complete"
 
 # Check if the setup has already been completed
 if [ -f "$MARKER_FILE" ]; then
@@ -73,33 +73,32 @@ if [ -f "$MARKER_FILE" ]; then
     touch "$MARKER_FILE_2"
   fi
 else
-  apk update
-  apk add wpa_supplicant wget
+
+  echo "Running first boot setup...";
+  apk update;
+  apk add wpa_supplicant wget;
 
   chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf;
+  ifdown wlan0;
+  sleep 3;
   wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf;
-  sleep 5
-  ifdown wlan0
-  sleep 5
-  ifup wlan0
-  sleep 5
-  echo "Running first boot setup...";
+  sleep 3;
+  ifup wlan0;
+  sleep 3;
 
   {
+    echo "y"
     echo "y"
     echo ""
   } | setup-alpine -e -f /etc/answerfile;
 
   sleep 5;
 
-  cp /etc/firstrun.sh /mnt/etc/firstrun.sh
-  cp /etc/wpa_supplicant/wpa_supplicant.conf /mnt/etc/wpa_supplicant/wpa_supplicant.conf
-  cp /media/mmcblk0/cmdline.txt /mnt/boot/cmdline.txt
-  cp /media/mmcblk0/config.txt /mnt/boot/config.txt
+  cp /etc/firstrun.sh /etc/local.d/firstrun.start;
 
-  echo "Alpine first run complete, rebooting..."
+  echo "Alpine first run complete, rebooting...";
   
-  touch "$MARKER_FILE"
+  touch "$MARKER_FILE";
   
-  # reboot
+  reboot
 fi

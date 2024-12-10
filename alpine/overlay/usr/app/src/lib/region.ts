@@ -3,9 +3,10 @@
 import fs from "fs"
 import { join } from "path"
 import EventEmitter from 'events'
+import { IRegionBounds } from "./types/interfaces"
 import { Renderer } from "./renderer"
 
-interface IRegionBounds { top: number; left: number; width: string | number; height: string | number }
+export interface IRegionBounds { top: number; left: number; width: number; height: number }
 
 export class Region extends EventEmitter {
     private name         : string | null = null;
@@ -43,8 +44,8 @@ export class Region extends EventEmitter {
         this.bounds = {
             top   : config.top ?? 0, // Default to 0
             left  : config.left ?? 0, // Default to 0
-            width : config.width || '100%', // Default to 100%
-            height: config.height || '100%', // Default to 100%
+            width : config.width || 320, // Default to 320px
+            height: config.height || 480, // Default to 480px
         };
         this.content = config.content || ''; // Initialize content
         this.renderer = renderer || Region.defaultRenderer(this);
@@ -59,8 +60,8 @@ export class Region extends EventEmitter {
         // Initialize content from file if not explicitly provided
         if (!config.content && config.name) {
             this.initializeContentFromFile(
-                `${this.getEffectivePath(config.path)}/${config.name}.html`
-            );
+                join( this.getEffectivePath(config.path), `${config.name}.html` )
+            )
         }
 
         // Add nested regions
@@ -73,21 +74,23 @@ export class Region extends EventEmitter {
 
     // Default renderer based on the Region instance
     static defaultRenderer = (region: Region): Renderer => {
-        console.log('Using default Renderer for root region.');
-        return new Renderer( region );
+        //console.debug('Using default Renderer for root region.');
+        const renderer = new Renderer( region )
+        renderer.init()
+        return renderer
     };
 
     // Collect all names in the connected region tree
     private collectAllRegionNames(): Set<string> {
         const names = new Set<string>();
     
-        console.log(`Collecting names for region: ${this.name || 'Unnamed Region'}`);
+        //console.debug(`Collecting names for region: ${this.name || 'Unnamed Region'}`);
     
         // Collect names from ancestors
         let parent = this.parentRegion;
         while (parent) {
             if (parent.name) {
-                console.log(`Found ancestor region: ${parent.name}`);
+                //console.debug(`Found ancestor region: ${parent.name}`);
                 names.add(parent.name);
             }
             parent = parent.parentRegion;
@@ -97,14 +100,14 @@ export class Region extends EventEmitter {
         if (this.parentRegion) {
             for (const sibling of this.parentRegion.getNestedRegions()) {
                 if (sibling !== this && sibling.name) {
-                    console.log(`Found sibling region: ${sibling.name}`);
+                    //console.debug(`Found sibling region: ${sibling.name}`);
                     names.add(sibling.name);
     
                     // Collect names from sibling's descendants (cousins)
                     const collectDescendants = (region: Region) => {
                         for (const nested of region.getNestedRegions()) {
                             if (nested.name) {
-                                console.log(`Found cousin region: ${nested.name}`);
+                                //console.debug(`Found cousin region: ${nested.name}`);
                                 names.add(nested.name);
                                 collectDescendants(nested);
                             }
@@ -119,7 +122,7 @@ export class Region extends EventEmitter {
         const collectDescendantNames = (region: Region) => {
             for (const nested of region.getNestedRegions()) {
                 if (nested !== this && nested.name) {
-                    console.log(`Found descendant region: ${nested.name}`);
+                    //console.debug(`Found descendant region: ${nested.name}`);
                     names.add(nested.name);
                     collectDescendantNames(nested);
                 }
@@ -189,7 +192,19 @@ export class Region extends EventEmitter {
     getRenderer = (): Renderer => this.renderer || this.parentRegion?.getRenderer();
 
     // Recursive getters for regions
-    getBounds        = ():IRegionBounds => this.bounds;
+    getBounds        = ():IRegionBounds => {
+        if ( !(typeof this.bounds.width === 'number' && this.bounds.width > 0) )
+            throw new Error("Invalid Width")
+
+        if ( !(typeof this.bounds.height === 'number' && this.bounds.height > 0) )
+            throw new Error("Invalid Height")
+        return {
+            top: this.bounds.top || 0,
+            left: this.bounds.left || 0,
+            width:  Math.floor( this.bounds.width ),
+            height: Math.floor( this.bounds.height ),
+        }
+    }
     getName          = ():string | null => this.name;
     getNestedRegions = ():Region[]      => this.nestedRegions;
     getParentRegion  = ():Region | null => this.parentRegion;

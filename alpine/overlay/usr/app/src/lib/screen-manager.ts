@@ -16,14 +16,14 @@ export class ScreenManager {
     }
 
     async initialize() {
-        console.debug('Initializing screen manager...')
+        //console.debug('Initializing screen manager...')
         await this.renderer.init()
         this.framebuffer.clear()
 
         // Attach watchers to automatically render regions on content updates
         this.attachWatchers( this.rootRegion )
 
-        console.debug('Screen manager initialized.')
+        //console.debug('Screen manager initialized.')
     }
 
     private attachWatchers(region: Region) {
@@ -37,7 +37,7 @@ export class ScreenManager {
     }
 
     async renderRegion(region: Region) {
-        console.debug(`Rendering region: ${region.getName()}`)
+        //console.debug(`Rendering region: ${region.getName()}`)
         await this.renderer.renderRegion(region)
 
         const contentBuffer = Buffer.from(region.getContent(), 'utf-8') // Mock content buffer
@@ -45,7 +45,7 @@ export class ScreenManager {
     }
 
     async renderAll() {
-        console.debug('Rendering all regions...')
+        //console.debug('Rendering all regions...')
         const traverseAndRender = async (region: Region) => {
             await this.renderRegion(region)
             for (const nested of region.getNestedRegions()) {

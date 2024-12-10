@@ -1,5 +1,5 @@
 KEYMAPOPTS="us us"
-HOSTNAMEOPTS="-n life.ho2.ezcharge.evse.1-2024-b1-00001"
+HOSTNAMEOPTS="-n 1-2024-b1-00001.evse.ezcharge.ho2.life"
 INTERFACESOPTS="auto lo
 iface lo inet loopback
 
