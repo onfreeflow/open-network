@@ -1,26 +1,27 @@
 {
-  "name": "life.ho2.pilot-charger",
-  "version": "1.0.0",
+  "name"       : "life.ho2.pilot-charger",
+  "version"    : "1.0.0",
   "description": "HO2 LIFE - Pilot Charger",
-  "author": "eric@ho2.life",
-  "license": "ISC",
+  "author"     : "eric@ho2.life",
+  "license"    : "ISC",
   "scripts": {
-    "test": "mocha --exit --require ./node_modules/babel-core/register",
+    "test"        : "mocha --exit --require ./node_modules/babel-core/register",
     "build-legacy": "npx babel --config-file ./babel.json --out-dir ./build --source-maps --verbose --extensions '.js,.ts' ./src",
-    "prebuild": "rm -rf ./dist",
-    "build": "esbuild ./src/index.ts --bundle --outfile=dist/bundle.js --platform=node --sourcemap",
-    "prestart": "npm run build && npx pm2 flush",
-    "start": "npx pm2 start --time --no-daemon ./dist/bundle.js -i 1"
+    "prebuild"    : "rm -rf ./dist",
+    "build"       : "esbuild ./src/index.ts --bundle --outfile=dist/bundle.js --platform=node --sourcemap",
+    "prestart"    : "npm run build && npx pm2 flush",
+    "start"       : "npx pm2 start --time --no-daemon ./dist/bundle.js -i 1"
   },
   "engines": {
     "node": ">=22.9.0",
-    "npm": ">=10.8.3"
+    "npm" : ">=10.8.3"
   },
   "dependencies": {
-    "uuid": "^10.0.0"
+    "uuid"      : "^10.0.0",
+    "serialport": "^12.0.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.24.8",
+    "@babel/cli" : "^7.24.8",
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.25.1",
     "@babel/plugin-proposal-do-expressions": "^7.24.7",

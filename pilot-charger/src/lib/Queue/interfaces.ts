@@ -34,6 +34,7 @@ export interface IEventsQueue {
 export interface IEventsQueueOptions {
   dbType: EEventsQueueDBType
   host ?: string
+  path ?: string
   port ?: number
   events: EEvent | EEvent[]
 }

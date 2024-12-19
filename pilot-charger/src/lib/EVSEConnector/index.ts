@@ -50,10 +50,7 @@ export class EVSEConnector extends EventsObject implements TEVSEConnector, Event
 
   constructor( configuration:IEVSEConnectorOptions ) {
     super()
-    Object.entries( configuration )
-          .forEach(
-            ( [ key, value ] ) => this[ key ] = value
-          )
+    Object.assign( this, configuration )
   }
   async connect() {
     this.isConnected
@@ -81,6 +78,8 @@ export class EVSEConnector extends EventsObject implements TEVSEConnector, Event
     if (this.isCharging) {
       throw "Charging already in progress."
     }
+    this.relays.power.close()
+    
     this.isCharging = true;
     this.powerOutput = await this.calculatePowerOutput();
     console.log(`Charging started in ${this.chargingMode} mode. Output: ${this.powerOutput} kW`);

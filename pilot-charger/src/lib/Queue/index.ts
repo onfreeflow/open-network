@@ -1,21 +1,16 @@
 "use strict"
-import {
-  EEventsQueueDBType,
-  IEventsQueue,
-  IEventsQueueOptions,
-  IPayload
-} from "./interfaces"
-import { EEvent } from "../Transport/interfaces"
+import { EEventsQueueDBType, IEventsQueue, IEventsQueueOptions, IPayload } from "./interfaces"
+import { EEvent } from "../Transport/enums"
 import { EventEmitter } from "events"
 import Database from "./Database"
 
 export class EventsQueue implements IEventsQueue{
-  queue:string[] = []
+  queue      :string[]           = []
   eventStream:Generator
-  db:Database
-  emitter:EventEmitter = new EventEmitter()
-  events: EEvent | EEvent[]
-  constructor({ dbType = EEventsQueueDBType.MEMORY, host, port , events }: IEventsQueueOptions) {
+  db         :Database
+  emitter    :EventEmitter       = new EventEmitter()
+  events     : EEvent | EEvent[] = []
+  constructor({ dbType = EEventsQueueDBType.MEMORY, host, path, port , events }: IEventsQueueOptions) {
     this.events = events
     this.eventStream = this._eventGenerator();
     if ( !(this instanceof EventsQueue) ) {
@@ -25,7 +20,14 @@ export class EventsQueue implements IEventsQueue{
       if ( dbType === EEventsQueueDBType.MEMORY){
         console.warn( "Queue will not persist, dbType[memory]" )
       } else {
-        const db = await new Database( dbType, { host, port } )
+        if ( !host ){
+          throw new Error( `Missing {host} on intilizer` )
+        } else if (!port ) {
+          throw new Error( `Missing {port} on intilizer` )
+        } else if ( !path ) {
+          throw new Error( `Missing {path} on intilizer` )
+        }
+        const db = await new Database( dbType, { path, host, port } )
         if ( !(db instanceof Database) ) {
           console.warn("Invalid database instance provided.");
         } else {
@@ -76,10 +78,10 @@ export class EventsQueue implements IEventsQueue{
   get length():number {
     return this.queue.length
   }
-  on( eventName, callBack ):void{
+  on( eventName: string, callBack: Function | any ):void{
     this.emitter.on( eventName, callBack )
   }
-  off( eventName, callBack ):void{
+  off( eventName: string, callBack: Function | any ):void{
     this.emitter.off( eventName, callBack )
   }
   async enqueueEvent( method: string, payload?: IPayload ):Promise<void>{

@@ -472,7 +472,7 @@ export class EVSE implements IEVSE {
     // [ISO15118] check if the vehicle can send power back into the charger
     // get vehicle SOC
     // get Vehicle battery capacity, and remaining energy requirement
-    // get max charging voltage and current
+    // get max charging voltage and current from vehicle
     // get target SoC and desired charging range
     // get battery temperature
     // get Charging profile ( charging curve )

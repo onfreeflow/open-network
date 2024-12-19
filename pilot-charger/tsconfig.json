@@ -8,7 +8,8 @@
     "strict": true,
     "noEmit": true, // Prevent TypeScript from emitting JS
     "resolveJsonModule": true, // Enable JSON imports
-    "esModuleInterop": true // Ensure compatibility with CommonJS
+    "esModuleInterop": true, // Ensure compatibility with CommonJS
+    "strictPropertyInitialization": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

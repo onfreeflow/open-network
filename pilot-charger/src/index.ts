@@ -7,7 +7,8 @@ import { PowerMeterModule }                           from "./lib/Hardware/power
 import { IPowerMeterConfiguration }                   from "./lib/Hardware/powermeter/interfaces"
 import { OverCurrentRelay, PowerRelay }               from "./lib/Hardware/relay"
 import { ERelayType, ERelayPosition, ERelayContacts } from "./lib/Hardware/relay/enums"
-import { TRelay }                                     from "./lib/Hardware/relay/types"
+//import { TRelay }                                     from "./lib/Hardware/relay/types"
+import { IRelayConfiguration }                        from "./lib/Hardware/relay/interfaces"
 import { ESwitchType }                                from "./lib/Hardware/switch/enums"
 import { TBLEModule }                                 from "./lib/Hardware/communication/ble/types"
 import { TWiFiModule }                                from "./lib/Hardware/communication/wifi/types"
@@ -30,26 +31,26 @@ import { readDeviceTree } from "./lib/Hardware"
 const deviceTree = readDeviceTree( "/proc/device-tree" );
 writeFileSync( "device-tree.json", JSON.stringify( deviceTree, null, 2 ) );
 
-
 interface ParseDeviceResponse {
   PowerMeters: IPowerMeterConfiguration[],
-  Relays     : TRelay[],
+  Relays     : IRelayConfiguration[],
   WiFi      ?: TWiFiModule, 
   BLE       ?: TBLEModule
 }
 
 function parseDevices( devices ): ParseDeviceResponse {
   return {
+    /** Expect Update Commands to have specific shape*/
     PowerMeters: [{
       serialNumber    : "230710280012",
       totalizer       : 0,
       voltage         : 0,
       deciWatts       : 0,
       deciWattHours   : 0,
-      path            : "",
+      path            : "/dev/ttyUSB0",
       baudRate        : 9600,
       activelyMetering: false
-    } as IPowerMeterConfiguration],
+    }],
     Relays:[{
       serialNumber   : "0A-FF-0B-CC-B2",
       type           : ERelayType.POWER,
@@ -60,7 +61,8 @@ function parseDevices( devices ): ParseDeviceResponse {
       coilCurrentType: ECurrentType.DC,
       loadCurrent    : 240,
       loadCurrentType: ECurrentType.AC,
-      loadVoltage    : 270
+      loadVoltage    : 270,
+      path           : "/dev/ttyUSB0"
     }]
   }
 }

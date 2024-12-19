@@ -4,7 +4,6 @@ import {
   watts,
   deciwatts,
   deciwatthours,
-  celsius,
   volts,
   TBaudRate,
   THardwareModule,
@@ -18,12 +17,17 @@ interface IMeterPowerConsumption {
   voltageWorkRange      ?: [volts, volts]
 }
 export interface IPowerMeterConfiguration {
-  serialNumber          : string | number;
-  totalizer             : watts;
-  voltage               : volts;
+  serialNumber          : string | number
+  totalizer             : watts
+  voltage               : volts
+  deciWatts            ?: watts
+  deciWattHours        ?: watts
   displays             ?: TDisplay[]
-  indicators           ?: TLED[];
-  meterPowerConsumption?: IMeterPowerConsumption;
+  indicators           ?: TLED[]
+  meterPowerConsumption?: IMeterPowerConsumption
+  path                 ?: string
+  baudRate             ?: TBaudRate
+  activelyMetering     ?: boolean
 }
 
 export interface IPowerMeter extends THardwareModule {
@@ -34,8 +38,7 @@ export interface IPowerMeter extends THardwareModule {
   activelyMetering     : boolean,
   display              ?: TDisplay,
   pulseIndicator       ?: TLED,
-  operatingTemperature ?: [ celsius, celsius ],
-  path                 : string,
+  path                 ?: string,
   baudRate             : TBaudRate,
   meterPowerConsumption?: {
     voltageLineConsumption?: volts,

@@ -1,1 +1,0 @@
-modules=loop,squashfs,sd-mod,usb-storage alpine_dev=mmcblk0p1 modloop=mmcblk0p1:sys console=tty1

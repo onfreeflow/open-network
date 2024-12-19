@@ -24,14 +24,12 @@ export class PowerMeterModule implements TPowerMeter {
     voltageLineConsumption: 0,
     currentLineConsumption: 0,
     voltageWorkRange      : 0
-  }
-  path                    : "/dev/ttyUSB0",
-  baudRate                : 9600
+  };
+  path                    : "/dev/ttyUSB0";
+  baudRate                : 9600;
   constructor( configuration: IPowerMeterConfiguration ){
     Object.entries( configuration).forEach( ( [ key, val ] ) => this[ key ] = val )
-    
   }
-  
 }
 
 export default PowerMeterModule
