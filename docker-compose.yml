@@ -1,40 +1,21 @@
 services:
-  # charger-one:
-  #   build:
-  #     dockerfile: ./ocppsim.Dockerfile
-  #   ports:
-  #    - "8000:8000"
-  #   extra_hosts:
-  #     - "nginx:172:20.0.5"
-  #   cpus: 0.75
-  #   networks:
-  #     - ezcharge
-
-  pilot-charger:
+  nginx:
     build:
-      args:
-        - EXPOSE_PORT=8080
-      context: ./
-      dockerfile: ./pilot-charger/Dockerfile
+      context: ./nginx
     ports:
-     - "8080:8080"
+      - "8443:8443"
     environment:
-     - PORT=8080
-     - NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/nginx.crt
-     - HEARTBEAT_TIMEOUT=30000
-     - OCPP_HOST=nginx
-     - OCPP_PORT=8443
-     - OCPP_PATH=/evse/connect
-     - PROTOCOL=wss
-    extra_hosts:
-      - "nginx:172.20.0.5"
-      - "steve:172.20.0.21"
+     - NEO4J_HOST=neo4j
+     - NEO4J_PORT=7474
+     - NEO4J_USERNAME=neo4j
+     - NEO4J_PASSWORD=password
+    depends_on:
+      - neo4j
     volumes:
-     - ./pilot-charger/src:/usr/src/app/src
+      - ./nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
     networks:
       ezcharge:
-        ipv4_address: 172.20.0.9
-
+        ipv4_address: 172.20.0.5
   neo4j:
     image: neo4j:5
     ports:
@@ -59,7 +40,7 @@ services:
         neo4j stop &&  # Stop the background Neo4j instance
         /startup/docker-entrypoint.sh neo4j
       "
-
+      
   mariadb:
     image: mariadb:10.4.30
     restart: unless-stopped
@@ -95,7 +76,7 @@ services:
     build:
       args:
         - EXPOSE_PORT=6907
-      context: ./ocpp
+      context: ./ocpp-service
     ports:
       - "6907"
     environment:
@@ -109,23 +90,30 @@ services:
       ezcharge:
         ipv4_address: 172.20.0.4
 
-  nginx:
+  pilot-charger:
     build:
-      context: ./nginx
+      args:
+        - EXPOSE_PORT=8080
+      context: ./
+      dockerfile: ./evse/node-app/Dockerfile
     ports:
-      - "8443:8443"
+     - "8080:8080"
     environment:
-     - NEO4J_HOST=neo4j
-     - NEO4J_PORT=7474
-     - NEO4J_USERNAME=neo4j
-     - NEO4J_PASSWORD=password
-    depends_on:
-      - neo4j
+     - PORT=8080
+     - NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/nginx.crt
+     - HEARTBEAT_TIMEOUT=30000
+     - OCPP_HOST=nginx
+     - OCPP_PORT=8443
+     - OCPP_PATH=/evse/connect
+     - PROTOCOL=wss
+    extra_hosts:
+      - "nginx:172.20.0.5"
+      - "steve:172.20.0.21"
     volumes:
-      - ./nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
+     - ./evse/node-app/src:/usr/src/app/src
     networks:
       ezcharge:
-        ipv4_address: 172.20.0.5
+        ipv4_address: 172.20.0.9
 
 networks:
   ezcharge:
