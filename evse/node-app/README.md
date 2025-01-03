@@ -165,5 +165,3 @@ const evseThree = new EVSE({
   connectors  : [ connectorA, connectorB ]
 })
 ```
-
-> openssl req -x509 -nodes -newkey rsa:2048 -keyout server.key -out server.crt -days 365 -config openssl-san.cnf
