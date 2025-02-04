@@ -1,12 +1,12 @@
 "use strict";
 import {
-    EEventsQueueDBType,
     IDatabaseConfiguration,
+    IEventSchema
  } from "./interfaces"
- import {
-    EEvent
- } from "../Transport/interfaces"
-export default class Database { //implements IDatabase {
+ import { EEventsQueueDBType } from "./enums"
+ import { EEvent } from "../Transport/enums"
+
+export class Database { //implements IDatabase {
     db:any = null
     dbType
     configuration:IDatabaseConfiguration = { host: "localhost", port: 5432, path: "/" }
@@ -27,7 +27,7 @@ export default class Database { //implements IDatabase {
             if ( this.db ) {
               this.db.run(
                   "CREATE TABLE IF NOT EXISTS queue (id INTEGER PRIMARY KEY AUTOINCREMENT, event TEXT)",
-                  (err) => {
+                  (err:Error) => {
                       if (err) reject(err);
                       else resolve( true );
                   }
@@ -41,28 +41,28 @@ export default class Database { //implements IDatabase {
       switch (this.dbType) {
         case 'sqlite3':
           try {
-            const sqlite3 = await import('sqlite3');
+            const sqlite3 = await import('sqlite3'!);
             return new sqlite3.Database(this.configuration.path || ':memory:');
           } catch ( e ) {
             console.warn( e )
           }
         case 'leveldb':
           try {
-            const level = await import('level');
+            const level = await import('level'!);
             return level.default(this.configuration.path || './leveldb');
           } catch ( e ) {
             console.warn( e )
           }
         case 'rocksdb':
           try {
-            const rocksdb = await import('rocksdb');
+            const rocksdb = await import('rocksdb'!);
             return rocksdb(this.configuration.path || './rocksdb');
           } catch ( e ) {
             console.warn( e )
           }
         case 'redis':
           try {
-            const redis = await import('redis');
+            const redis = await import('redis'!);
             const client = redis.createClient({
                 url: `redis://${this.configuration.host || 'localhost'}:${this.configuration.port || 6379}`,
                 // Optional auth properties can be added here
@@ -77,12 +77,12 @@ export default class Database { //implements IDatabase {
       }
     }
 
-    async insert(event) {
+    async insert(event:IEventSchema) {
         const eventStr = JSON.stringify(event.message);
         switch (this.dbType) {
             case 'sqlite3':
                 await new Promise((resolve, reject) => {
-                    this.db.run("INSERT INTO queue (id, event) VALUES (?)", [event.id, eventStr], (err) => {
+                    this.db.run("INSERT INTO queue (id, event) VALUES (?)", [event.id, eventStr], (err:Error) => {
                         if (err) reject(err);
                         else resolve( true );
                     });
@@ -98,11 +98,11 @@ export default class Database { //implements IDatabase {
         }
     }
 
-    async delete(event) {
+    async delete(event:{ id:string|number }) {
         switch (this.dbType) {
             case 'sqlite3':
                 await new Promise((resolve, reject) => {
-                    this.db.run("DELETE FROM queue WHERE id = ?", [event.id], (err) => {
+                    this.db.run("DELETE FROM queue WHERE id = ?", [event.id], (err:Error) => {
                         if (err) reject(err);
                         else resolve( true );
                     });
@@ -121,9 +121,9 @@ export default class Database { //implements IDatabase {
         switch (this.dbType) {
             case 'sqlite3':
                 return new Promise((resolve, reject) => {
-                    this.db.all("SELECT id, event FROM queue ORDER BY id ASC", [], (err, rows) => {
+                    this.db.all("SELECT id, event FROM queue ORDER BY id ASC", [], (err:Error, rows:any) => {
                         if (err) reject(err);
-                        resolve(rows.map(row => {
+                        resolve(rows.map( (row:any) => {
                             const event:EEvent = JSON.parse( row )
                             events.push( event );
                         }));
@@ -147,3 +147,4 @@ export default class Database { //implements IDatabase {
         }
     }
 }
+export default Database

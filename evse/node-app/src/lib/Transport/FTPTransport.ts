@@ -1,6 +1,7 @@
 "use strict"
 
 import net from "net"
+import { NetConnectOpts } from "net"
 import { createReadStream } from "fs"
 
 import {
@@ -29,7 +30,7 @@ export class FTPTransport implements IFTPTransport {
     secure  : false,
     pasv    : true
   }
-  #connection
+  #connection: any
   #connected = false
   uri:string = "ftp://"
   constructor({
@@ -51,7 +52,7 @@ export class FTPTransport implements IFTPTransport {
   }
   connect(){
     return new Promise( (resolve, reject ) =>{
-      this.#connection = net.createConnection({ host: this.#connectionConfiguration.host, port: this.#connectionConfiguration.port }, async () => {
+      this.#connection = net.createConnection({ host: this.#connectionConfiguration.host, port: this.#connectionConfiguration.port } as NetConnectOpts, async () => {
         await new Promise(() => (this.#connection.once( "data", () => { this.#connected = true } ),resolve(true)))
       }).on("error", reject )
     })
@@ -59,7 +60,7 @@ export class FTPTransport implements IFTPTransport {
   #sendCommand = (command: string, expectedCode: string|undefined):Promise<string> =>
     new Promise( (resolve, reject) => {
       this.#connection.write(`${command}\r\n`);
-      this.#connection.on('data', data => {
+      this.#connection.on('data', ( data:any ) => {
         const response = data.toString();
         if (response.startsWith('5') || response.startsWith('4')) {
           return reject(new Error(`FTP error[${command}]: ${response}`));
@@ -78,7 +79,7 @@ export class FTPTransport implements IFTPTransport {
       });
     });
 
-  async uploadFile(localPath, remotePath):Promise<{path:string}|void> {
+  async uploadFile(localPath:string, remotePath:string):Promise<{path:string}|void> {
     if( !localPath || !remotePath){
       throw new Error(`FTPTransport::uploadFile: Missing local[${localPath}] or remote[${remotePath}] path.`);
     }
@@ -113,7 +114,7 @@ export class FTPTransport implements IFTPTransport {
       })
 
       return { path: remotePath }
-    } catch (err) {
+    } catch (err:any ) {
       console.error( new Error( `Error during FTP upload: ${err.message}` ) )
     }
   }

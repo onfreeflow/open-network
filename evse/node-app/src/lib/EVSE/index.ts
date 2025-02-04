@@ -29,7 +29,10 @@ import {
   EPerfMarksFTPUpload,
   EPerfMeasuresFTPUpload
 } from "./enums"
+
+import { Base }                                       from "../Base"
 import { EventsQueue }                                from "../Queue"
+import { IEventsQueueOptions }                        from "../Queue/interfaces"
 import { EVSEConnector }                              from  "../EVSEConnector"
 import { EConnectorStatus }                           from "../EVSEConnector/enums"
 import { OCPPTransport, FTPTransport, SFTPTransport } from "../Transport"
@@ -44,12 +47,12 @@ const validateOptions = (options: any) => {
   switch( true ) {
     case !options.id && typeof options.id !== 'number': throw SyntaxError( "EVSEBase Constructor: Options argument is missing required property(id)" );
     case !options.serialNumber                        : throw SyntaxError( "EVSEBase Constructor: Options argument is missing required property(serialNumber)" );
-    case options.connectors.length < 1                : logger.warn( "Will not distribute power, no connectors registered")
+    case options.connectors.length < 1                : console.warn( "Will not distribute power, no connectors registered")
       default: break
   }
 }
 
-export class EVSE implements IEVSE {
+export class EVSE extends Base implements IEVSE {
   availability: EAvailability = EAvailability.AVAILABLE;
   connectors: EVSEConnector[] = []
   voltage:EVoltageLevel = EVoltageLevel.AC_LEVEL_2_SINGLE_PHASE
@@ -137,26 +140,38 @@ export class EVSE implements IEVSE {
     }
   }
   
-  #ocppTransports: OCPPTransport[]
-  #ftpTransports : Array<FTPTransport|SFTPTransport>
+  #ocppTransports: OCPPTransport[] | undefined[]
+  #ftpTransports : Array<FTPTransport|SFTPTransport> | undefined[]
 
   //#commsTransport: 
   //#serialTransports: SerialTransport[]
   //#wanTransports: WANTransport[]
   constructor( options:IEVSEOptions ){
+    super()
     validateOptions( options )
     this.id = options.id
     this.serialNumber = options.serialNumber;
     this.connectors = options.connectors.filter( connector => connector instanceof EVSEConnector ) as EVSEConnector[] || []
     this.#ocppTransports = typeof options.transport === 'object'
                           ? options.transport.filter( transport => transport instanceof OCPPTransport )
-                          : options.transport instanceof OCPPTransport ? [ options.transport ] : []
+                          : options.transport as any instanceof OCPPTransport ? [ options.transport ] : []
     this.#ftpTransports = typeof options.transport === 'object'
                           ? options.transport.filter( transport => transport instanceof FTPTransport || transport instanceof SFTPTransport )
-                          : options.transport instanceof FTPTransport ? [ options.transport ] : []
+                          : options.transport as any instanceof FTPTransport ? [ options.transport ] : []
     this.configuration = { ...this.configuration, ...options.configuration }
     this.eventsQueue = { ...this.eventsQueue, ...options.eventsQueue }
-    this.os = { ...this.os, ...options.os }
+    this.os = {
+      firmware: {
+        ...this.os.firmware,
+        ...options.os?.firmware
+      },
+      logs: [],
+      diagnostics: {
+        ...this.os.diagnostics,
+        ...options.os?.diagnostics
+      },
+      temporaryDirectory: options.os?.temporaryDirectory
+     }
     this.manufacturer = { ...this.manufacturer, ...options.manufacturer }
     this.hardwareModules = { ...this.hardwareModules, ...options.hardwareModules }
 
@@ -172,12 +187,15 @@ export class EVSE implements IEVSE {
         console.warn( warn )
       }
       return this
-    })()
+    })() as unknown as this
   }
-  async emit( method:string, payload?: IPayload ):Promise<void>{
+  async emitEvent( method:string, payload?: IPayload ):Promise<void>{
     let recieved = false
     try {
       for ( const transport of this.#ocppTransports ) {
+        if ( !transport ) {
+          throw new Error( "Transport Failure" )
+        }
         if ( !transport.isConnected() ) continue
         try {
           await transport.sendMessage( method, payload )
@@ -204,19 +222,27 @@ export class EVSE implements IEVSE {
   }
   async #setupEventsQueue(){
     if ( !this.eventsQueue ){
-      logger.warn( "ONLY USE FOR TESTING PURPOSES: Default Event Queue is only using ram. Power reset will result in data loss." )
+      console.warn( "ONLY USE FOR TESTING PURPOSES: Default Event Queue is only using ram. Power reset will result in data loss." )
     }
     const { dbType, host, port } = this.eventsQueue
-    this.eventsQueue.queue = await new EventsQueue( { dbType, host, port } )
+    
+    this.eventsQueue.queue = await new EventsQueue( { dbType, host, port } as IEventsQueueOptions)
     await this.eventsQueue.queue.hydrate()
+    
   }
   async #connectToCentralSystem(){
     for ( const transport of this.#ocppTransports ) {
+      if ( !transport ) {
+        throw new Error( "No transport on extracted transport from #OCPPTransports")
+      }
       await transport.connect()
       await this.#listenToOCPPTransport( transport )
     }
     while ( this.eventsQueue.queue && this.eventsQueue.queue.length > 0 ){
       for ( const transport of this.#ocppTransports ) {
+        if ( !transport ) {
+          throw new Error( "No transport on extracted transport from #OCPPTransports")
+        }
         const { method, payload } = await this.eventsQueue.queue.dequeueEvent()
         console.log("sending queued message:", method, payload)
         await transport.sendMessage(method, payload )
@@ -276,14 +302,14 @@ export class EVSE implements IEVSE {
     })
   }
   #boot(){
-    this.emit(
+    this.emitEvent(
       "BootNotification",
       {
         chargePointVendor      : this.manufacturer.vendor,
         chargePointModel       : this.manufacturer.model,
         chargePointSerialNumber: this.serialNumber,  // Optional
         chargeBoxSerialNumber  : this.serialNumber,  // Optional
-        firmwareVersion        : this.os.firmware.version,  // Optional
+        firmwareVersion        : this.os.firmware?.version,  // Optional
         iccid                  : "",  // Optional
         imsi                   : "123456789012345",  // Optional
         meterType              : this.manufacturer.energyMeter.type
@@ -293,10 +319,10 @@ export class EVSE implements IEVSE {
   #heartbeatSetup(){
     setInterval(() => {
       this.lastHeartbeat = new Date().toISOString()
-      this.emit( "Heartbeat" )
-    }, this.configuration.heartbeatInterval || process.env.HEARTBEAT_INTERVAL || 120000);
+      this.emitEvent( "Heartbeat" )
+    }, this.configuration.heartbeatInterval || parseInt( process.env.HEARTBEAT_INTERVAL as string, 10 ) || 120000);
     this.lastHeartbeat = new Date().toISOString()
-    this.emit( "Heartbeat" )
+    this.emitEvent( "Heartbeat" )
   }
   async #ftpUpload( transport:FTPTransport|SFTPTransport, localPath:string , remotePath:string ){
     /**
@@ -308,7 +334,7 @@ export class EVSE implements IEVSE {
     
     const localFileStats:any = statSync(localPath)
 
-    this.emit( "DiagnosticStatusNotification", {
+    this.emitEvent( "DiagnosticStatusNotification", {
       status    : EDiagnosticStatus.UPLOADING,
       fileName  : remotePath,
       fileSize  : localFileStats.size,
@@ -326,7 +352,7 @@ export class EVSE implements IEVSE {
       retryCount: 0
     })
     await transport.uploadFile( localPath, remotePath )
-    this.emit( "DiagnosticStatusNotification", {
+    this.emitEvent( "DiagnosticStatusNotification", {
       status    : EDiagnosticStatus.UPLOADED,
       fileName  : remotePath,
       fileSize  : localFileStats.size,
@@ -354,19 +380,22 @@ export class EVSE implements IEVSE {
     const match = location.match(
                 /([a-zA-Z]+):\/\/([a-zA-Z0-9._%+-]+):([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+)(:[0-9]+)?(\/.*)?/
               )
-    if ( !match && this.os.logs.length === 0 )
+    if ( !match && this.os.logs?.length === 0 )
       throw new Error("EVSE#sendDiagnostics: [args{location}] not a full URI and log paths[options.os.logs[string]] ")
     if ( !match && this.#ftpTransports.length === 0 )
       throw new Error("EVSE#sendDiagnostics: [args{location}] not a full URI and no FTP transports [options.transports[FTPTransport] ")
 
     const
-      combinedLog = this.os.logs.map(({name,path})=> `\n--------${name}--------\n ${readFileSync(path)} \n-----------------------\n`).join("\n"),
+      combinedLog = this.os.logs?.map(({name,path})=> `\n--------${name}--------\n ${readFileSync(path)} \n-----------------------\n`).join("\n"),
       combinedLogPath = `${this.os.temporaryDirectory}/combined-log-export-${new Date().toISOString() }.log`
 
-    try { 
+    try {
+      if ( typeof combinedLog === "undefined"){
+        throw new Error( "No combined log" )
+      } 
       writeFileSync( combinedLogPath, combinedLog, { encoding: "utf-8" } )
     } catch ( e ) {
-      logger.error ("Write File error for temp file: ", combinedLogPath)
+      console.error ("Write File error for temp file: ", combinedLogPath)
     }
 
     if ( match ){
@@ -416,7 +445,10 @@ export class EVSE implements IEVSE {
         info       : "Charger is " + this.availability,
         timestamp  : new Date().toISOString()
       })
-    this.connectors.forEach( ({ id:connectorId, status }) => {
+    this.connectors.forEach( (connector:EVSEConnector)=> {
+      const
+        { status } = connector,
+        connectorId = connector.getId()
       console.log( `${connectorId}: ${status}`)
       this.emit(
         EEvent.STATUS_NOTIFICATION,
@@ -429,7 +461,7 @@ export class EVSE implements IEVSE {
         })
     })
   }
-  #updateAvailability( connectorId: number, newAvailability: EAvailability ){
+  #updateAvailability( connectorId: number, newAvailability: EAvailability.INOPERATIVE | EAvailability.OPERATIVE ){
     const availabilityUpdateMap = {
       [EAvailability.INOPERATIVE]:EAvailability.UNAVAILABLE,
       [EAvailability.OPERATIVE]:EAvailability.AVAILABLE,
@@ -441,9 +473,9 @@ export class EVSE implements IEVSE {
       if ( this.availability === newAvailability ) {
         throw new Error( `Cannot change, already set to [${this.availability}]` )
       }
-      this.availability = availabilityUpdateMap[newAvailability]
+      this.availability = availabilityUpdateMap[ newAvailability ]
     } else {
-      this.connectors.filter( connector => connector.id !== connectorId )[0].updateStatus( availabilityUpdateMap[ newAvailability ] )
+      this.connectors.filter( connector => connector.id !== connectorId )[0].updateStatus( availabilityUpdateMap[ newAvailability ] as unknown as EConnectorStatus )
     }
     this.#emitAvailability()
   }
@@ -469,20 +501,30 @@ export class EVSE implements IEVSE {
     // Check building load management
     // check the grid status (DR)
     
-    // [ISO15118] check if the vehicle can send power back into the charger
-    // get vehicle SOC
-    // get Vehicle battery capacity, and remaining energy requirement
-    // get max charging voltage and current from vehicle
-    // get target SoC and desired charging range
-    // get battery temperature
-    // get Charging profile ( charging curve )
-    // get estimated charge time
-    // get battery health and diagnostic information
-    // get power and energy limits
-    // get vehicle idenitification and authentication information [ISO15118, plugNCharge]
+    // ContractCertificateAuthentication - eg: iso15118
+    if ( await connector.contractCertificateAuthentication() ){
+      // idTag (1.6J) - 20 characters
+      //   localcache
+      //   locallist
+      //   remote
+      // idToken (2.0.1) - 32 characters
+      //   localCache
+      //   localList
+      //   remote
+    }
+    // [plugNCharge] get vehicle identification and authentication information
+    // [ISO15118]    get v2g readiness and vehicle control signal
     // get charging mode (ac/dc)
-    // get v2g readiness and vehicle control signal
-
+    // get max charging voltage and current from vehicle
+    // get Charging profile ( charging curve )
+    // get power and energy limits
+    // get battery health and diagnostic information
+    // get Vehicle battery capacity, and remaining energy requirement
+    // get target SoC and desired charging range
+    // get estimated charge time
+    // get battery temperature
+    // get vehicle SOC
+    
     // set screen value( "starting charge" )
     await connector.startCharging()
   }

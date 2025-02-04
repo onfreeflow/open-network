@@ -9,8 +9,9 @@
     "noEmit": true, // Prevent TypeScript from emitting JS
     "resolveJsonModule": true, // Enable JSON imports
     "esModuleInterop": true, // Ensure compatibility with CommonJS
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [ "src/**/*" ],
+  "exclude": [ "node_modules", "dist", "docs" ]
 }

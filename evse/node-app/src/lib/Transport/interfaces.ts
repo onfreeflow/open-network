@@ -1,6 +1,6 @@
 "use strict"
 
-import { Readable } from "fs"
+import { Readable } from "stream"
 import FTPTransport from "./FTPTransport"
 import SFTPTransport from "./SFTPTransport"
 import OCPPTransport from "./OCPPTransport"
@@ -25,9 +25,9 @@ export interface IEnvelope {
 export interface ITLSConfiguration {
   enabled   ?: boolean,
   minVersion?: ETLSVersions,
-  ca        ?: Array<Readable> | Readable | null,
-  key       ?: Array<Readable> | Readable | null,
-  cert      ?: Array<Readable> | Readable | null 
+  ca        ?: string | Buffer<ArrayBufferLike> | undefined,
+  key       ?: Array<Readable> | Readable | undefined,
+  cert      ?: Array<Readable> | Readable | undefined 
 }
 export interface IFTPConfiguration {
   protocol?: EFTPProtocol;
@@ -73,6 +73,7 @@ export interface IFTPTransportOptions {
   user  ?: string;
   pass  ?: string;
   pasv  ?: boolean;
+  secure?: boolean;
 }
 
 export interface IFTPTransport {

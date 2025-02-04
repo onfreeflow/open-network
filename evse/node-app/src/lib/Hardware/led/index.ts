@@ -2,27 +2,27 @@
 
 import { TLED, TLEDStrip } from "./types"
 import { ELEDPattern } from "./enums"
+import HardwareModule from "../common"
 import { EColor } from "../common/enums"
 
-function ColoredLED( color, resistance, pins = 2 ){
-  return function ( constructor ){
-    (constructor as any).setColor( color )
-    (constructor as any).resistance = resistance
-    (constructor as any).pins = pins
+function ColoredLED( color:string, resistance:number, pins:number = 2 ){
+  return function ( constructor:any ){
+    constructor.setColor( color )
+    constructor.resistance = resistance
+    constructor.pins = pins
   }
 }
 
-export class LED implements TLED{
-  id;
+export class LED extends HardwareModule implements TLED {
   name;
   description;
   pins = 2;
   resistance = 0;
-  #color;
+  #color:string;
   #pattern:ELEDPattern = ELEDPattern.SOLID;
   #active:boolean      = false;
-  constructor( id, name?, description? ) {
-    this.id = id
+  constructor( serialNumber: string|number|symbol, name?:string, description?:string ) {
+    super({serialNumber})
     this.name = name || ""
     this.description = description || ""
   }
@@ -41,10 +41,10 @@ export class LED implements TLED{
   get blinkFast(): TLED {
     return ( this.#pattern = ELEDPattern.BLINK_FAST, this )
   }
-  on(): void{
+  turnOn() : void {
     this.#active = true
   }
-  off(): void{
+  turnOff(): void {
     this.#active = false
   }
 }
@@ -70,11 +70,11 @@ export class MultiColorLED extends LED implements LED {
 }
 
 
-function ColoredLEDStrip( color, resistance, pins = 4 ){
-  return function ( constructor ){
-    (constructor as any).color = color
-    (constructor as any).resistance = resistance
-    (constructor as any).pins = pins
+function ColoredLEDStrip( color:string, resistance: number, pins:number = 4 ){
+  return function ( constructor: any ){
+    constructor.color = color
+    constructor.resistance = resistance
+    constructor.pins = pins
   }
 }
 export class LEDStrip extends LED implements TLED {

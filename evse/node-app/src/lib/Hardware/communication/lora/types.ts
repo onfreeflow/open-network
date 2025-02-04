@@ -1,5 +1,5 @@
 "use strict"
 
-import { TCommunicationModule } from "../module"
+import { TCommunicationModule } from "../types"
 
 export type TLoRaModule = TCommunicationModule

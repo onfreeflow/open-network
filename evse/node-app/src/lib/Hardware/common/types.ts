@@ -2,7 +2,9 @@
 import { IHardwareModule } from "./interfaces"
 
 
-export type THardwareModule = IHardwareModule
+export type THardwareModule = IHardwareModule & {
+  getSerialNumber():string|number
+}
 
 export type volts         = number;
 export type deciwatts     = number; 

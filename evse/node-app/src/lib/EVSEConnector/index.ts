@@ -1,4 +1,5 @@
 "use strict"
+
 import {
   IEVSEConnectorOptions,
   IEVSEConnectorRelays
@@ -14,7 +15,6 @@ import {
   TGBTConnector
 } from "./types"
 import {
-  EAvailability,
   EConnectorStatus,
   EConnectorType,
   EIsolationStatus,
@@ -24,11 +24,15 @@ import {
   EDemandResponseStatus
 } from "./enums"
 import { TPowerMeter } from "../Hardware/powermeter/types" 
-import EventsObject from "../EventsObject"
+//import { ISO15118XMLParser } from "../utils"
+import Base from "../Base"
+import { IProtectiveEarthLine } from "../Hardware/protectiveearthline/interfaces";
+import { ControlPilotLine } from "../Hardware/controlpilotline"
+import { EControlPilotLineState } from "../Hardware/controlpilotline/enums"
+import { PLCModem } from "../Hardware/plcmodem"
 
 
-export class EVSEConnector extends EventsObject implements TEVSEConnector, EventsObject {
-  id                   : string | number | symbol;
+export class EVSEConnector extends Base implements TEVSEConnector, Base {
   status               : EConnectorStatus       = EConnectorStatus.AVAILABLE;
   connectorType        : EConnectorType;
   maxVoltage           : number                 = 120; // V
@@ -47,18 +51,69 @@ export class EVSEConnector extends EventsObject implements TEVSEConnector, Event
   demandResponseStatus : EDemandResponseStatus  = EDemandResponseStatus.NONE;
   powerMeters          : TPowerMeter[];
   relays               : IEVSEConnectorRelays;
+  plcModem             : PLCModem;
+  controlPilotLine     : ControlPilotLine;
+  protectiveEarthLine  : IProtectiveEarthLine;
+  
 
   constructor( configuration:IEVSEConnectorOptions ) {
     super()
     Object.assign( this, configuration )
+    this.controlPilotLine.on( "plcStateUpdated", async ( newState:EControlPilotLineState) => {
+      switch( newState ) {
+        case EControlPilotLineState.STATE_A: {
+
+        }; break;
+        case EControlPilotLineState.STATE_B: {
+
+        }; break;
+        case EControlPilotLineState.STATE_C: {
+          this.plcModem.emit( "ACTIVATE" )
+          await this.plcModem.once( "ACTIVE" )
+          
+          
+          // Activate EVSE Modem on Connector PLC
+          // Establish HomePlug Green PHY protocol
+          // Ethernet Over PLC
+          //  Setup MAC address, and frame Structure
+          // EVSE ( DHCP) assigns IPv6 address to the EV
+          // EVSE wait for EV to establish TCP session
+          //  initiaite ISO 15118 handshake
+          // EVSE & EV start TLS handshake
+          // TLS session open
+          // XML encoded messages
+          // const EVTLSConnection = {};
+          // EVTLSConnection.on( "message", ( msgString:string ):void => {
+          //   const parsedObj = ISO15118XMLParser.parseXML( msgString )
+          //   try{
+          //     ISO15118XMLParser.isISO15118Structure( parsedObj )
+          //   } catch ( e ){
+          //     console.error( "Error: ", e )
+          //   }
+          //   //this.processISO15118Message( ISO15118XMLParser.buildXML( parsedObj, "V2GMessage" ) )
+          // })
+        }; break;
+        case EControlPilotLineState.STATE_D: {
+
+        }; break;
+        case EControlPilotLineState.ERROR:
+        default: {
+          throw new Error( "Message from PLCModem on 'plcStateUpdate' event not a valid state")
+        }
+      }
+    })
+  }
+  async contractCertificateAuthentication():Promise<boolean>{
+    // ContractCertificateAuthentication - eg: iso15118
+    return true
   }
   async connect() {
     this.isConnected
-      ? console.log( `Connector[${ typeof this.id === "symbol" ? this.id.description : this.id }] already connected.` )
+      ? console.log( `Connector[${ this.getId() }] already connected.` )
       : ( this.isConnected = true,
           this.isolationStatus = EIsolationStatus.PLUGGED,
           this.emit( EIsolationStatus.PLUGGED ),
-          console.log( `${this.connectorType} vehicle connected.`));
+          console.log( `${this.connectorType} vehicle connected.`))
   }
 
   async disconnect() {
@@ -78,19 +133,38 @@ export class EVSEConnector extends EventsObject implements TEVSEConnector, Event
     if (this.isCharging) {
       throw "Charging already in progress."
     }
-    this.relays.power.close()
-    
-    this.isCharging = true;
-    this.powerOutput = await this.calculatePowerOutput();
-    console.log(`Charging started in ${this.chargingMode} mode. Output: ${this.powerOutput} kW`);
+    try {
+      // This is where the power relay closes to start the charge session
+      if ( !await this.relays.power.close() ) {
+        throw new Error(`Power Relay for Connector(${this.getId()}) would not close to start a charge session`)
+      }
+      this.isCharging = true
+      this.powerOutput = await this.calculatePowerOutput()
+      console.log( `Charging started in ${this.chargingMode} mode. Output: ${this.powerOutput} kW` )
+    } catch ( e ){
+      console.error( "Error in start charging: ", e )
+      throw e
+    }
   }
 
   async stopCharging() {
-    this.isCharging
-      ? (this.isCharging = false,
-         this.powerOutput = 0,
-         console.log('Charging stopped.'))
-      : console.log('No charging in progress.');
+    if (!this.isConnected) {
+      throw "No vehicle connected. Cannot stop charging."
+    }
+    if (!this.isCharging) {
+      throw "No charging in progress."
+    }
+    try {
+      // This is where the power relay closes to start the charge session
+      if ( !await this.relays.power.open() ) {
+        throw new Error(`Power Relay for Connector(${this.getId()}) would not open to to stop a charge session`)
+      }
+      this.isCharging = false
+      this.powerOutput = 0;
+    } catch ( e ) {
+      console.error( "Error in stopping charge: ", e )
+      throw e
+    }
   }
 
   // Calculate power output based on charging mode, grid, and demand response status
@@ -154,7 +228,7 @@ export class EVSEConnector extends EventsObject implements TEVSEConnector, Event
   }
   updateStatus( newStatus: EConnectorStatus ){
     if ( !Object.values( EConnectorStatus ).some( type => type === newStatus ) ){
-      throw new TypeError(`New availablility[${newStatus}] not accpeted by connector[${this.id}]`) 
+      throw new TypeError(`New availablility[${newStatus}] not accpeted by connector[${ this.getId()}]`) 
     }
     this.status = newStatus
   }

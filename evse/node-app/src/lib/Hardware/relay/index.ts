@@ -1,5 +1,6 @@
 "use strict"
 
+import HardwareModule from "../common"
 import { ECurrentType } from "../common/enums"
 import { ESwitchType } from "../switch/enums"
 import { ERelayContacts, ERelayPosition, ERelayType } from "./enums"
@@ -7,8 +8,7 @@ import { IRelay, IRelayConfiguration } from "./interfaces"
 
 import { sendSerialCommand } from "../../utils"
 
-export class Relay implements IRelay {
-  serialNumber   : string | number | symbol
+export class Relay extends HardwareModule implements IRelay {
   path           : string
   type           : ERelayType
   switchType     : ESwitchType
@@ -20,6 +20,7 @@ export class Relay implements IRelay {
   loadCurrentType: ECurrentType
   loadVoltage    : number
   constructor( configuration: IRelayConfiguration ){
+    super({ serialNumber: configuration.serialNumber })
     Object.assign( this, configuration )
   }
   async open():Promise<boolean> {

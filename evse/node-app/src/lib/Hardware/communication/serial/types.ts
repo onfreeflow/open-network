@@ -1,5 +1,5 @@
 "use strict"
 
-import { ISerial } from "./interfaces"
+import { ISerialModule } from "./interfaces"
 
-export type TSerial = ISerial
+export type TSerialModule = ISerialModule

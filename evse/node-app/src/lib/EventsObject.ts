@@ -1,8 +1,8 @@
 import { EventEmitter, once } from "events"
 
 export default class EventsObject extends EventEmitter {
-  once( ...args ) {
-    once( this, ...args )
+  once( eventName: string, options?:any ) {
+    once( this, eventName, options )
     return this
   }
 }

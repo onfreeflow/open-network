@@ -8,7 +8,7 @@ import {
   EDataFormat
 } from "./enums"
 
-export interface ISerial extends THardwareModule {
+export interface ISerialModule extends THardwareModule {
   type       : EConnectionType,
   baudRate   : EBaudRate,
   pinCount   : number,

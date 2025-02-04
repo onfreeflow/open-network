@@ -3,6 +3,8 @@
 export enum EConnectionType {
   RS232  = "RS232",
   RS485  = "RS485",
+  UART   = "UART",
+  SPI    = "SPI",
   USB_A  = "USB-A",
   USB_B  = "USB-B",
   USB_C  = "USB-C"

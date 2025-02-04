@@ -9,13 +9,13 @@ import { TLED } from "../Hardware/led/types"
 import { TPowerMeter } from "../Hardware/powermeter/types"
 import { TPowerRelay, TConnectorRelay, TOverloadProtectionRelay } from "../Hardware/relay/types"
 
-import { TSerial } from "../Hardware/communication/serial/types"
+import { TSerialModule } from "../Hardware/communication/serial/types"
 import { TBLEModule } from "../Hardware/communication/ble/types"
 import { TRFIDModule } from "../Hardware/communication/rfid/types"
 import { TNFCModule } from "../Hardware/communication/nfc/types"
 import { TLoRaModule } from "../Hardware/communication/lora/types"
 import { TWiFiModule } from "../Hardware/communication/wifi/types"
-import { TRJ45 } from "../Hardware/communication/rj45/types"
+import { TRJ45Module } from "../Hardware/communication/rj45/types"
 import { TCellular } from "../Hardware/communication/cellular/types"
 
 import {
@@ -112,13 +112,13 @@ export interface IHardwareModules {
   connectorRelays         : TConnectorRelay[],
   overloadProtectionRelays: TOverloadProtectionRelay[],
   communications          : {
-    serial  ?: TSerial[],   //RS232, RS485, USB(A/B/C)
+    serial  ?: TSerialModule[],   //RS232, RS485, USB(A/B/C)
     ble     ?: TBLEModule[],
     rfid    ?: TRFIDModule[],
     nfc     ?: TNFCModule[],
     lora    ?: TLoRaModule[],
     wifi    ?: TWiFiModule[],
-    rj45    ?: TRJ45[],
+    rj45    ?: TRJ45Module[],
     cellular?: TCellular[]
   }
 }
@@ -133,7 +133,7 @@ export interface IEVSEOptions {
   id              : string | number;
   serialNumber    : string;
   size           ?: ISizeLWH;
-  connectors     ?: EVSEConnector[];
+  connectors      : EVSEConnector[];
   transport      ?: Transport[];
   eventsQueue    ?: Omit<IEVSEEventsQueue, "queue">;
   os             ?: IEVSEOSConfiguration;
@@ -151,9 +151,9 @@ export interface IEnergyMeter {
 
 
 export interface IFirmwareConfiguration {
-  version         : string;
-  downloadInterval: number;
-  downloadRetries : number;
+  version         ?: string;
+  downloadInterval?: number;
+  downloadRetries ?: number;
 }
 
 export interface IGetDiagnosticsRequest {
@@ -181,8 +181,8 @@ export interface IManufacturerLog {
 }
 
 export interface IDiagnosticsConfiguration{
-  timestamp: string;
-  status   : EDiagnosticStatus;
+  timestamp?: string;
+  status   ?: EDiagnosticStatus;
 }
 
 export interface IEVSEOSConfiguration {

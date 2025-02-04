@@ -92,7 +92,7 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
         let event
         const frameData = parseWebSocketFrame( data )
         try {
-          event = JSON.parse( frameData )
+          event = JSON.parse( frameData as string )
         } catch( e ) {
           // TODO: clean up non-text frames
           //console.warn( e )
@@ -132,7 +132,7 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
     if ( !this.centralSystemService.reconnect ){
       throw new SyntaxError( "Reconnects not defined" )
     }
-    if ( this.#reconnectCount > this.centralSystemService.reconnect.attempts ){
+    if ( this.#reconnectCount > this.centralSystemService.reconnect.attempts! ){
       throw new Error("Max Reconnects")
     }
     this.#reconnectCount = this.#reconnectCount + 1

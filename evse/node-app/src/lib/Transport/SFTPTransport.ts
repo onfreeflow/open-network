@@ -23,12 +23,11 @@ export class SFTPTransport implements IFTPTransport {
     user    : "",
     pass    : ""
   }
-  #connection
-  #dh
-  #sharedSecret
-  #encryptionKey
-  #cipher
-  #decipher
+  #connection:any
+  #sharedSecret:any
+  #encryptionKey:any
+  #cipher: any
+  #decipher: any
   uri:string = "sftp://"
   /** 
   * @param {object} config - Configuration for SFTP connection.
@@ -62,14 +61,14 @@ export class SFTPTransport implements IFTPTransport {
     
     this.#connection.write( "SSH-2.0-GenericClient_1.0\r\n" )
 
-    const serverProtocol = await new Promise((resolve, reject) => {
+    const serverProtocol:string = await new Promise((resolve, reject):void => {
       let protocolBuffer = Buffer.alloc(0);
       const timeout = setTimeout(() => {
         this.#connection.off("data", onData);
         reject(new Error("Timeout waiting for full server protocol response"));
       }, 3000);
 
-      const onData = (data) => {
+      const onData = (data:Uint8Array) => {
         protocolBuffer = Buffer.concat([protocolBuffer, data]);
 
         const protocolString = protocolBuffer.toString();
@@ -81,7 +80,7 @@ export class SFTPTransport implements IFTPTransport {
       };
 
       this.#connection.on("data", onData);
-      this.#connection.on("error", (error) => {
+      this.#connection.on("error", (error:Error) => {
         clearTimeout(timeout);
         this.#connection.off("data", onData);
         reject(error);
@@ -129,7 +128,7 @@ export class SFTPTransport implements IFTPTransport {
         reject( new Error( "Timeout waiting for server public key" ) )
       }, 30000)
 
-      const onData = (key) => {
+      const onData = (key:Uint8Array) => {
         buffer = Buffer.concat([buffer, key])
         if (buffer.length > 0) {
           clearTimeout(timeout)
@@ -154,7 +153,7 @@ export class SFTPTransport implements IFTPTransport {
 
       this.#connection.on("data", onData);
 
-      this.#connection.on("error", (error) => {
+      this.#connection.on("error", (error:Error) => {
         clearTimeout(timeout)
         this.#connection.off("data", onData)
         reject(error)
@@ -167,7 +166,7 @@ export class SFTPTransport implements IFTPTransport {
     this.#cipher        = createCipheriv("aes-256-ctr", this.#encryptionKey, Buffer.alloc(16, 0));
     this.#decipher      = createDecipheriv( "aes-256-ctr", this.#encryptionKey, Buffer.alloc(16, 0));
 
-    this.#connection.on("data", encryptedData => {
+    this.#connection.on("data", (encryptedData:string) => {
       const decryptedBuffer = this.#decipher.update(encryptedData, "hex", "utf8") + this.#decipher.final("utf8")
 
       //const packetLength = decryptedBuffer.readUInt32BE(0)
@@ -206,7 +205,7 @@ export class SFTPTransport implements IFTPTransport {
     this.#closeWrite( fileHandle )
   }
 
-  #writeEncrypted( data ):void {
+  #writeEncrypted( data:Buffer|string ):void {
     if ( !this.#sharedSecret ) throw new Error( "SFTPTransport#writeEncrypted: missing [sharedSecret]")
     if ( !this.#encryptionKey ) throw new Error( "SFTPTransport#writeEncrypted: missing [encryptionKey]")
     if ( !this.#cipher ) throw new Error( "SFTPTransport#writeEncrypted: missing [cipher]")
@@ -236,7 +235,7 @@ export class SFTPTransport implements IFTPTransport {
     buff.writeUInt32BE(3, 5)
     this.#writeEncrypted( buff )
   }
-  #openForWrite( filename ){
+  #openForWrite( filename:string ){
     const filenameBuffer = Buffer.from(filename, 'utf8')
     const packetLength = 9 + filenameBuffer.length + 4
     const buffer = Buffer.alloc(packetLength)
@@ -249,9 +248,9 @@ export class SFTPTransport implements IFTPTransport {
 
     this.#writeEncrypted(buffer)
   }
-  #writeToFile(fileHandle, offset, data) {
+  #writeToFile( fileHandle:string, offset:number, data:Buffer|string ) {
     const fileHandleBuffer = Buffer.from(fileHandle, 'utf8');
-    const dataBuffer = Buffer.from(data, 'utf8');
+    const dataBuffer = data instanceof Buffer ? data : Buffer.from(data as string, 'utf8');
     const packetLength = 17 + fileHandleBuffer.length + dataBuffer.length;
     const buffer = Buffer.alloc(packetLength);
   
@@ -264,7 +263,7 @@ export class SFTPTransport implements IFTPTransport {
 
     this.#writeEncrypted( buffer );
   }
-  #closeWrite( fileHandle ){
+  #closeWrite( fileHandle:string ){
     const fileHandleBuffer = Buffer.from(fileHandle, 'utf8');
     const packetLength = 9 + fileHandleBuffer.length;
     const buffer = Buffer.alloc(packetLength);
@@ -276,7 +275,7 @@ export class SFTPTransport implements IFTPTransport {
   
     this.#writeEncrypted(buffer);
   }
-  #handleStatusResponse( buffer ){
+  #handleStatusResponse( buffer:Buffer ){
     const requestId = buffer.readUInt32BE(5);    // Request ID (matches your previous request)
     const statusCode = buffer.readUInt32BE(9);   // Status code (e.g., 0 for success)
   

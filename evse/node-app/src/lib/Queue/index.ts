@@ -1,14 +1,18 @@
 "use strict"
-import { EEventsQueueDBType, IEventsQueue, IEventsQueueOptions, IPayload } from "./interfaces"
+import { v4 } from "uuid"
+import { IEventsQueueOptions, IEventSchema, IPayload } from "./interfaces"
+import { TEventsQueue } from "./types"
+import { EEventsQueueDBType } from "./enums"
 import { EEvent } from "../Transport/enums"
 import { EventEmitter } from "events"
 import Database from "./Database"
 
-export class EventsQueue implements IEventsQueue{
-  queue      :string[]           = []
-  eventStream:Generator
-  db         :Database
-  emitter    :EventEmitter       = new EventEmitter()
+
+export class EventsQueue implements TEventsQueue{
+  queue      : IEventSchema[]     = []
+  eventStream: Generator
+  db         : Database
+  emitter    : EventEmitter       = new EventEmitter()
   events     : EEvent | EEvent[] = []
   constructor({ dbType = EEventsQueueDBType.MEMORY, host, path, port , events }: IEventsQueueOptions) {
     this.events = events
@@ -33,18 +37,18 @@ export class EventsQueue implements IEventsQueue{
         } else {
           this.db = db;
           try {
-            await this.db.initialize();
+            await this.db.initialize()
           } catch ( e ) {
-            console.error( e );
+            console.error( e )
           }
         }
       }
       return this
-    })()
+    })() as unknown as this
   }
   async hydrate():Promise<void>{
     try {
-      if (this.db) { this.queue.push( ...( await this.db.fetchAll() ) ) }
+      if (this.db) { this.queue.push( ...( await this.db.fetchAll() ) as any[] ) }
     } catch (e) {
       console.error( e )
     }
@@ -54,7 +58,8 @@ export class EventsQueue implements IEventsQueue{
       yield this.queue.length === 0 ? null : this.queue.shift()
     }
   }
-  async enqueue( event: string ):Promise<boolean>{
+  async enqueue( eventInfo: string ):Promise<boolean>{
+    const event:IEventSchema = {id: v4(), message: eventInfo }
     try{
       if (this.db) {
         await this.db.insert(event);
@@ -66,8 +71,8 @@ export class EventsQueue implements IEventsQueue{
       return true
     }
   }
-  async dequeue():Promise<string> {
-    const event:string = this.eventStream.next().value
+  async dequeue():Promise<IEventSchema> {
+    const event:IEventSchema = this.eventStream.next().value
     try{
       event && this.db ? await this.db.delete(event) : null
     } catch ( e ){
@@ -94,7 +99,7 @@ export class EventsQueue implements IEventsQueue{
     }
   }
   async dequeueEvent():Promise<{method:string,payload:IPayload}>{
-    const event = JSON.parse(await this.dequeue())
+    const event = JSON.parse((await this.dequeue()).message)
     try{
       this.emitter.emit( "EVENT_DEQUEUED", event )
     } catch ( e ){

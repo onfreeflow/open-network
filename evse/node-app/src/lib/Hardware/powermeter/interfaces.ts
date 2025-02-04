@@ -40,9 +40,5 @@ export interface IPowerMeter extends THardwareModule {
   pulseIndicator       ?: TLED,
   path                 ?: string,
   baudRate             : TBaudRate,
-  meterPowerConsumption?: {
-    voltageLineConsumption?: volts,
-    currentLineConsumption?: volts,
-    voltageWorkRange      ?: volts
-  },
+  meterPowerConsumption?:IMeterPowerConsumption
 }

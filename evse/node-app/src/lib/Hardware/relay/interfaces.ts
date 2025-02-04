@@ -21,13 +21,14 @@ export interface IRelay extends THardwareModule {
   loadCurrent    : number          
   loadCurrentType: ECurrentType    
   loadVoltage    : number
-  close()        : void
-  open()         : void
+  close()        : Promise<boolean>
+  open()         : Promise<boolean>
   status()       : IRelayStatusResponse
 }
 
 export interface IRelayConfiguration extends IHardwareModule {
-  switchType     : ESwitchType     
+  type           : ERelayType
+  switchType     : ESwitchType
   contacts       : ERelayContacts[]
   position       : ERelayPosition  
   coilVoltage    : number          

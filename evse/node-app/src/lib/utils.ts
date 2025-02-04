@@ -1,14 +1,19 @@
 "use strict"
-import { SerialPort, ReadLineParser } from "serialport";
+import { parseString } from "xml2js";
+import { SerialPort, ReadlineParser } from "serialport";
 
 export class ErrorMalformedMessage extends Error {
-  constructor( cause = "" ) {
-    super( `Message Malformed: `, { cause })
+  cause: string
+  constructor( cause:string = "" ) {
+    super( `Message Malformed: `)
+    this.cause = cause
   }
 }
 export class StatusTransitionError extends Error {
+  cause: string
   constructor( oldStatus:string, newStatus:string ){
-    super( `Status Transition Error: Status[${oldStatus}] cannot transition to Status[${newStatus}]`, { cause: "NewStatus !== OldStatus" } )
+    super( `Status Transition Error: Status[${oldStatus}] cannot transition to Status[${newStatus}]`)
+    this.cause =  "NewStatus !== OldStatus"
   }
 }
 
@@ -22,7 +27,7 @@ export async function sendSerialCommand( portPath:string, { command, serialNumbe
   const
     sn = serialNumber instanceof Symbol ? serialNumber.description : serialNumber,
     port = new SerialPort( { path: portPath, baudRate } ),
-    parser = new ReadLineParser({ delimiter: newLine }),
+    parser = new ReadlineParser({ delimiter: newLine }),
     message = JSON.stringify( { serialNumber: sn, command } ) + newLine; // Add newline for serial parsing
   return new Promise( ( resolve, reject ) => {
     const
@@ -41,3 +46,25 @@ export async function sendSerialCommand( portPath:string, { command, serialNumbe
   })
 }
 
+
+
+// Lightweight XML Parser for ISO15118
+export const ISO15118XMLParser = {
+  // Parse XML string to JavaScript object
+  parseXML: async ( xmlString:string ):Promise<any> => 
+    new Promise((resolve, reject) => {
+      parseString(
+        xmlString,
+        { explicitArray: false, trim: true, mergeAttrs: true },
+        ( err:Error|null, result:any ) => err ? reject( err ) : resolve( result )
+      );
+    }),
+  // Serialize JavaScript object to XML string
+  buildXML: (jsObject:object, rootName:string = 'Root'):string =>
+    (new (require('xml2js').Builder)({
+      rootName,
+      xmldec: { version: '1.0', encoding: 'UTF-8', standalone: true },
+    })).buildObject(jsObject),
+  // Custom ISO15118-specific validation
+  isISO15118Structure: ( parsedObj:any ):boolean => parsedObj && parsedObj['ISO15118Message']
+}

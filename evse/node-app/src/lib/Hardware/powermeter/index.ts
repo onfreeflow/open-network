@@ -1,6 +1,7 @@
 "use strict";
 
-import { watts, volts, celsius } from "../common/types"
+import HardwareModule from "../common"
+import { watts, volts } from "../common/types"
 import { TDisplay } from "../display/types"
 import { TPowerMeter } from "./types"
 import { IPowerMeterConfiguration } from "./interfaces"
@@ -11,8 +12,7 @@ const options = {
   indicators:[],
 }
 
-export class PowerMeterModule implements TPowerMeter {
-  serialNumber:string      = ""
+export class PowerMeterModule extends HardwareModule implements TPowerMeter {
   totalizer:watts          = 0
   voltage:volts            = 0
   deciWatts:watts          = 0
@@ -23,12 +23,22 @@ export class PowerMeterModule implements TPowerMeter {
   meterPowerConsumption    = {
     voltageLineConsumption: 0,
     currentLineConsumption: 0,
-    voltageWorkRange      : 0
+    voltageWorkRange      : [ 0, 0 ] as [ number, number]
   };
   path                    : "/dev/ttyUSB0";
   baudRate                : 9600;
   constructor( configuration: IPowerMeterConfiguration ){
-    Object.entries( configuration).forEach( ( [ key, val ] ) => this[ key ] = val )
+    super( { serialNumber: configuration.serialNumber } )
+    this.totalizer = configuration.totalizer
+    this.voltage = configuration.voltage
+    this.deciWatts = configuration.deciWatts ? configuration.deciWatts : this.deciWatts
+    this.deciWattHours = configuration.deciWattHours ? configuration.deciWattHours : this.deciWattHours
+    this.displays = configuration.displays ? configuration.displays : []
+    this.indicators = configuration.indicators ? configuration.indicators : []
+    this.meterPowerConsumption = {
+      ...this.meterPowerConsumption,
+      ...configuration.meterPowerConsumption
+    }
   }
 }
 

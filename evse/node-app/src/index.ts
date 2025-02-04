@@ -38,7 +38,7 @@ interface ParseDeviceResponse {
   BLE       ?: TBLEModule
 }
 
-function parseDevices( devices ): ParseDeviceResponse {
+function parseDevices( deviceTree: File ): ParseDeviceResponse {
   return {
     /** Expect Update Commands to have specific shape*/
     PowerMeters: [{
@@ -112,7 +112,7 @@ const
   }
 
 
-new EVSE({
+const charger = new EVSE({
   id          : 0,
   serialNumber,
   connectors  : [

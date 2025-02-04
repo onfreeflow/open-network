@@ -2,7 +2,7 @@
 
 import { THardwareModule } from "../common/types"
 import { meters } from "../common/types"
-import { ECommMode } from "./interfaces"
+import { ECommMode } from "./enums"
 
 interface ICommunicationModule extends THardwareModule {
   MACID    : string,

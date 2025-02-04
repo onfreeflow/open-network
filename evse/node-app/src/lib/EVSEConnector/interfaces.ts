@@ -1,5 +1,8 @@
 "use strict"
+import { volts } from "../Hardware/common/types"
 import { TPowerMeter } from "../Hardware/powermeter/types"
+import { TControlPilotLine } from "../Hardware/controlpilotline/types"
+import { TProtectiveEarthLine } from "../Hardware/protectiveearthline/types"
 import { TRelay } from "../Hardware/relay/types"
 import { 
   EConnectorType,
@@ -8,7 +11,7 @@ import {
   EChargingMode,
   EGridStatus,
   EDemandResponseStatus,
-  EConnectorStatus,
+  EConnectorStatus
 } from "./enums"
 
 export interface IEVSEConnectorRelays {
@@ -46,6 +49,8 @@ export interface IEVSEConnector {
   demandResponseStatus : EDemandResponseStatus;
   powerMeters          : TPowerMeter[];
   relays               : IEVSEConnectorRelays;
+  controlPilotLine     : TControlPilotLine;
+  protectiveEarthLine  : TProtectiveEarthLine;
   displayName         ?: string;
 
   connect(): Promise<void>;

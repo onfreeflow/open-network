@@ -33,7 +33,7 @@ const createWebSocketFrame = (message:string, opcode:number = 0x1 ):Buffer => {
 }
 
 // Frame handler for receiving WebSocket frames
-export const parseWebSocketFrame = (frame: Buffer):string => {
+export const parseWebSocketFrame = (frame: Buffer):string|void => {
   const firstByte = frame[0];
   const fin = (firstByte & 0x80) !== 0; // FIN bit
   const opcode = firstByte & 0x0f; // Extract opcode (lower 4 bits)
@@ -56,6 +56,8 @@ export const parseWebSocketFrame = (frame: Buffer):string => {
   if (isMasked) {
     mask = frame.slice(offset, offset + 4); // Read the 4-byte mask
     offset += 4;
+  } else {
+    throw new Error( "Envelope masking failed" )
   }
 
   const payload = Buffer.alloc(payloadLength);
@@ -91,7 +93,7 @@ const formatOCPPMessage = ( method:string, payload:IPayload = {}, messageId = Ma
     if ( typeof messageArr[ 0 ] !== "number" ) throw new ErrorMalformedMessage("message[0] must be of type 'number'")
     if ( typeof messageArr[ 1 ] !== "string") throw new ErrorMalformedMessage("message[1] must be of type 'string'")
     if ( typeof messageArr[ 2 ] !== "string" ) throw new ErrorMalformedMessage("message[2] must be of type 'string'")
-  } catch ( e ) {
+  } catch ( e:any ) {
     console.error( e.message, e.cause )
   }
   return createWebSocketFrame( JSON.stringify( messageArr ) )
@@ -108,7 +110,7 @@ const formatOCPPResponse = ( messageId:string, payload:IPayload = {} ):Buffer =>
     if ( messageArr.length !== 3 ) throw new ErrorMalformedMessage("response must be 3 items: [messageType, messageId, payload]")
     if ( typeof messageArr[ 0 ] !== "number" ) throw new ErrorMalformedMessage("message[0] must be of type 'number'")
     if ( typeof messageArr[ 1 ] !== "string") throw new ErrorMalformedMessage("message[1] must be of type 'string'")
-  } catch ( e ) {
+  } catch ( e:any ) {
     console.error( e.message, e.cause )
   }
   return createWebSocketFrame( JSON.stringify( messageArr ) )

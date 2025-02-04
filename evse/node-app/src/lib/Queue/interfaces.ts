@@ -2,7 +2,8 @@
 
 import Database from "./Database"
 import { EventEmitter } from "events"
-import { EEvent } from "../Transport/interfaces"
+import { EEventsQueueDBType } from "./enums"
+import { EEvent } from "../Transport/enums"
 
 export interface IDatabaseConfiguration {
   host: string;
@@ -10,21 +11,18 @@ export interface IDatabaseConfiguration {
   path: string;
 }
 
-export enum EEventsQueueDBType {
-  SQLITE3 = 'sqlite3',
-  LEVELDB = 'leveldb',
-  ROCKSDB = 'rocksdb',
-  REDIS   = 'redis',
-  MEMORY  = 'memory'
-}
-
 export interface IPayload {
   [key: string]: any;
   timestamp?: string;
 }
 
+export interface IEventSchema {
+  id: string | number
+  message: string
+}
+
 export interface IEventsQueue {
-  queue      : string[]
+  queue      : IEventSchema[]
   eventStream: Generator
   db         : Database
   emitter    : EventEmitter
