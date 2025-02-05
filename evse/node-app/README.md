@@ -165,3 +165,7 @@ const evseThree = new EVSE({
   connectors  : [ connectorA, connectorB ]
 })
 ```
+
+## Swagger Docs
+
+[Documentation](https://hodonsky.github.io/evse-resources/)
