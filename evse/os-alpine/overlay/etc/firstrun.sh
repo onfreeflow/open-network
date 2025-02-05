@@ -77,7 +77,6 @@ if [ -f "$MARKER_FILE" ]; then
     apk update && \
     apk upgrade && \
     apk add --no-cache \
-        alpine-sdk \
         build-base \
         chrony \
         curl \
@@ -88,13 +87,13 @@ if [ -f "$MARKER_FILE" ]; then
         make \
         nodejs \
         openrc \
-        raspberrypi \
-        screen \
         sudo \
-        tmux \
         tzdata \
         udev \
         wireless-tools \
+    # Step 3.1: Add API specific packages
+    apk add --no-cache \
+        raspberrypi \
         wiringpi
 
     # Step 4: Fetch the secret password from the API and create the user with that password
@@ -140,8 +139,8 @@ else
     return 1;
   fi
 
-  if apk add wpa_supplicant wget openrc; then
-    logAndDisplay OK "Step 2 - APK ADD wpa_supplicant wget and openrc complete";
+  if apk add wpa_supplicant openrc; then
+    logAndDisplay OK "Step 2 - APK ADD wpa_supplicant openrc complete";
   else
     logAndDisplay ERROR "Step 2 - Error: Failed to install packages";
     return 1;

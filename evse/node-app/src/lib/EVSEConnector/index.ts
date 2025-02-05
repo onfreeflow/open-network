@@ -32,7 +32,7 @@ import { EControlPilotLineState } from "../Hardware/controlpilotline/enums"
 import { PLCModem } from "../Hardware/plcmodem"
 
 
-export class EVSEConnector extends Base implements TEVSEConnector, Base {
+export class EVSEConnector extends Base implements TEVSEConnector {
   status               : EConnectorStatus       = EConnectorStatus.AVAILABLE;
   connectorType        : EConnectorType;
   maxVoltage           : number                 = 120; // V

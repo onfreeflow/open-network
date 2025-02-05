@@ -8,7 +8,7 @@
   "scripts": {
     "test"        : "mocha --exit --require ./node_modules/babel-core/register",
     "build-legacy": "npx babel --config-file ./babel.json --out-dir ./build --source-maps --verbose --extensions '.js,.ts' ./src",
-    "build-docs"  : "npx typedoc && npx gh-pages --dist docs",
+    "build-docs"  : "npx typedoc && git push origin --delete gh-pages && npx gh-pages --dotfiles --dist docs",
     "prebuild"    : "rm -rf ./dist",
     "build"       : "esbuild ./src/index.ts --bundle --outfile=dist/bundle.js --platform=node --sourcemap",
     "prestart"    : "npm run build && npx pm2 flush",

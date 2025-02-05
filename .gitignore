@@ -9,3 +9,6 @@ build/*
 */steve
 steve/*
 steve
+
+evse/node-app/docs
+evse/node-app/docs/*

@@ -14,3 +14,5 @@ export class CommunicationModule extends HardwareModule implements TCommunicatio
     security : string[]
     commMode : ECommMode[]
 }
+
+export default CommunicationModule

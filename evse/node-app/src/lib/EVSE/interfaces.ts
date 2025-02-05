@@ -76,9 +76,7 @@ export interface IEVSEProperties {
   configuration  : IEVSEConfiguration
 }
 
-export interface IEVSE extends IEVSEProperties {
-  emit(method:string, payload?: IPayload ):void;
-}
+export interface IEVSE extends IEVSEProperties {}
 
 export interface IEVSEOptionsEventsQueue {
   host  : string;

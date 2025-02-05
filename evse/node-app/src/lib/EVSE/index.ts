@@ -6,8 +6,9 @@ import { performance } from "perf_hooks"
 
 import Logger from "../Logger"
 
+import { TEVSE } from "./types"
+
 import {
-  IEVSE,
   IEVSEConfiguration,
   IEVSEEventsQueue,
   IEVSEOptions,
@@ -52,7 +53,7 @@ const validateOptions = (options: any) => {
   }
 }
 
-export class EVSE extends Base implements IEVSE {
+export class EVSE extends Base implements TEVSE {
   availability: EAvailability = EAvailability.AVAILABLE;
   connectors: EVSEConnector[] = []
   voltage:EVoltageLevel = EVoltageLevel.AC_LEVEL_2_SINGLE_PHASE
@@ -479,7 +480,7 @@ export class EVSE extends Base implements IEVSE {
     }
     this.#emitAvailability()
   }
-  async remoteStartTransaction( idTag: string, connectorId: number ){
+  async remoteStartTransaction( idTag: string, connectorId: number ):Promise<void>{
     if ( this.availability === EAvailability.UNAVAILABLE ) throw new Error( "Charger in 'Unavailable' status" )
 
     const [ connector ]: EVSEConnector[] = this.connectors.filter( c => c.id === connectorId )
