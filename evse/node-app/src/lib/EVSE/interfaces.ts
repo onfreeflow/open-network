@@ -4,19 +4,19 @@ import { EventsQueue } from "../Queue"
 import { EVSEConnector } from "../EVSEConnector"
 import { Transport } from "../Transport/interfaces"
 
-import { TDisplay } from "../Hardware/display/types"
-import { TLED } from "../Hardware/led/types"
-import { TPowerMeter } from "../Hardware/powermeter/types"
-import { TPowerRelay, TConnectorRelay, TOverloadProtectionRelay } from "../Hardware/relay/types"
+import { TDisplay } from "../Component/display/types"
+import { TLED } from "../Component/led/types"
+import { TPowerMeter } from "../Component/powermeter/types"
+import { TPowerRelay, TConnectorRelay, TOverloadProtectionRelay } from "../Component/relay/types"
 
-import { TSerialModule } from "../Hardware/communication/serial/types"
-import { TBLEModule } from "../Hardware/communication/ble/types"
-import { TRFIDModule } from "../Hardware/communication/rfid/types"
-import { TNFCModule } from "../Hardware/communication/nfc/types"
-import { TLoRaModule } from "../Hardware/communication/lora/types"
-import { TWiFiModule } from "../Hardware/communication/wifi/types"
-import { TRJ45Module } from "../Hardware/communication/rj45/types"
-import { TCellular } from "../Hardware/communication/cellular/types"
+import { TSerialModule } from "../Component/communication/serial/types"
+import { TBLEModule } from "../Component/communication/ble/types"
+import { TRFIDModule } from "../Component/communication/rfid/types"
+import { TNFCModule } from "../Component/communication/nfc/types"
+import { TLoRaModule } from "../Component/communication/lora/types"
+import { TWiFiModule } from "../Component/communication/wifi/types"
+import { TRJ45Module } from "../Component/communication/rj45/types"
+import { TCellular } from "../Component/communication/cellular/types"
 
 import {
   EAvailability,
@@ -103,7 +103,7 @@ export interface IHMIs {
   touchScreens?: TDisplay[],
   indicators  ?: IIndicators
 }
-export interface IHardwareModules {
+export interface IComponentModules {
   hmis                    : IHMIs,
   powerMeters             : TPowerMeter[],
   evseRelays              : TPowerRelay[],
@@ -135,7 +135,7 @@ export interface IEVSEOptions {
   transport      ?: Transport[];
   eventsQueue    ?: Omit<IEVSEEventsQueue, "queue">;
   os             ?: IEVSEOSConfiguration;
-  hardwareModules?: IHardwareModules;
+  hardwareModules?: IComponentModules;
   configuration  ?: IEVSEConfiguration;
   manufacturer   ?: IEVSEManufacturerConfiguration;
 }

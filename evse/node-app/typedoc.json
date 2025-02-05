@@ -4,5 +4,7 @@
   "out":"docs",
   "includeVersion":true,
   "hideGenerator": true,
-  "githubPages": true
+  "githubPages": true,
+  "readme": "README.md",
+  "titleLink": "index.html"
 }

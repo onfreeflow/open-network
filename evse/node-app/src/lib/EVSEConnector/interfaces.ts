@@ -1,9 +1,9 @@
 "use strict"
-import { volts } from "../Hardware/common/types"
-import { TPowerMeter } from "../Hardware/powermeter/types"
-import { TControlPilotLine } from "../Hardware/controlpilotline/types"
-import { TProtectiveEarthLine } from "../Hardware/protectiveearthline/types"
-import { TRelay } from "../Hardware/relay/types"
+import { volts } from "../Component/common/types"
+import { TPowerMeter } from "../Component/powermeter/types"
+import { TControlPilotLine } from "../Component/controlpilotline/types"
+import { TProtectiveEarthLine } from "../Component/protectiveearthline/types"
+import { TRelay } from "../Component/relay/types"
 import { 
   EConnectorType,
   ECommunicationProtocol,

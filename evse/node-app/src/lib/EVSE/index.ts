@@ -14,7 +14,7 @@ import {
   IEVSEOptions,
   IEVSEOSConfiguration,
   IEVSEManufacturerConfiguration,
-  IHardwareModules
+  IComponentModules
 } from "./interfaces"
 
 import {
@@ -121,7 +121,7 @@ export class EVSE extends Base implements TEVSE {
     voltageLimit        : null,
     currentLimit        : null
   }
-  hardwareModules: IHardwareModules = {
+  hardwareModules: IComponentModules = {
     powerMeters             : [],
     evseRelays              : [],
     connectorRelays         : [],

@@ -23,13 +23,13 @@ import {
   EGridStatus,
   EDemandResponseStatus
 } from "./enums"
-import { TPowerMeter } from "../Hardware/powermeter/types" 
+import { TPowerMeter } from "../Component/powermeter/types" 
 //import { ISO15118XMLParser } from "../utils"
 import Base from "../Base"
-import { IProtectiveEarthLine } from "../Hardware/protectiveearthline/interfaces";
-import { ControlPilotLine } from "../Hardware/controlpilotline"
-import { EControlPilotLineState } from "../Hardware/controlpilotline/enums"
-import { PLCModem } from "../Hardware/plcmodem"
+import { IProtectiveEarthLine } from "../Component/protectiveearthline/interfaces";
+import { ControlPilotLine } from "../Component/controlpilotline"
+import { EControlPilotLineState } from "../Component/controlpilotline/enums"
+import { PLCModem } from "../Component/plcmodem"
 
 
 export class EVSEConnector extends Base implements TEVSEConnector {

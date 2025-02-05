@@ -2,20 +2,20 @@
 import "./log"
 import { readFileSync, writeFileSync }                from "fs"
 
-import { ECurrentType }                               from "./lib/Hardware/common/enums"
-import { PowerMeterModule }                           from "./lib/Hardware/powermeter"
-import { IPowerMeterConfiguration }                   from "./lib/Hardware/powermeter/interfaces"
-import { OverCurrentRelay, PowerRelay }               from "./lib/Hardware/relay"
-import { ERelayType, ERelayPosition, ERelayContacts } from "./lib/Hardware/relay/enums"
+import { ECurrentType }                               from "./lib/Component/common/enums"
+import { PowerMeterModule }                           from "./lib/Component/powermeter"
+import { IPowerMeterConfiguration }                   from "./lib/Component/powermeter/interfaces"
+import { OverCurrentRelay, PowerRelay }               from "./lib/Component/relay"
+import { ERelayType, ERelayPosition, ERelayContacts } from "./lib/Component/relay/enums"
 //import { TRelay }                                     from "./lib/Hardware/relay/types"
-import { IRelayConfiguration }                        from "./lib/Hardware/relay/interfaces"
-import { ESwitchType }                                from "./lib/Hardware/switch/enums"
-import { TBLEModule }                                 from "./lib/Hardware/communication/ble/types"
-import { TWiFiModule }                                from "./lib/Hardware/communication/wifi/types"
+import { IRelayConfiguration }                        from "./lib/Component/relay/interfaces"
+import { ESwitchType }                                from "./lib/Component/switch/enums"
+import { TBLEModule }                                 from "./lib/Component/communication/ble/types"
+import { TWiFiModule }                                from "./lib/Component/communication/wifi/types"
 import {
   RedLED, GreenLED, MultiColorLED, YellowLEDStrip,
   RedLEDStrip, GreenLEDStrip, MultiColorLEDStrip
-} from "./lib/Hardware/led"
+} from "./lib/Component/led"
 
 import { EVSE }                                       from "./lib/EVSE"
 import { EVSEConnector }                              from "./lib/EVSEConnector"
@@ -26,7 +26,7 @@ import {
   EReconnectStrategy, EWebSocketProtocol
 } from "./lib/Transport/enums"
 
-import { readDeviceTree } from "./lib/Hardware"
+import { readDeviceTree } from "./lib/Component"
 
 const deviceTree = readDeviceTree( "/proc/device-tree" );
 writeFileSync( "device-tree.json", JSON.stringify( deviceTree, null, 2 ) );
