@@ -3,9 +3,9 @@
 import { EProtectiveEarthLineState } from "./enums"
 import { TProtectiveEarthLine }      from "./types"
 import { volts }                     from "../common/types"
-import ComponentModule                from "../common"
+import Component               from "../common"
 
-export class ProtectiveEarthLine extends ComponentModule implements TProtectiveEarthLine {
+export class ProtectiveEarthLine extends Component implements TProtectiveEarthLine {
   voltage : volts;
   MACAddress: string;
   state: EProtectiveEarthLineState;

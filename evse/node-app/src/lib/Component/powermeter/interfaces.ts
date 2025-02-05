@@ -6,7 +6,7 @@ import {
   deciwatthours,
   volts,
   TBaudRate,
-  TComponentModule,
+  TComponent,
 } from "../common/types"
 import { TDisplay } from "../display/types"
 import { TLED } from "../led/types"
@@ -30,7 +30,7 @@ export interface IPowerMeterConfiguration {
   activelyMetering     ?: boolean
 }
 
-export interface IPowerMeter extends TComponentModule {
+export interface IPowerMeter extends TComponent{
   totalizer            : deciwatts,
   voltage              : volts,
   deciWatts            : deciwatts,

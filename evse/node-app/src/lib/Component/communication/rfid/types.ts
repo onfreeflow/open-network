@@ -1,5 +1,5 @@
 "use strict"
 
-import { TCommunicationModule } from "../types"
+import { TCommunication} from "../types"
 
-export type TRFIDModule = TCommunicationModule
+export type TRFID= TCommunication

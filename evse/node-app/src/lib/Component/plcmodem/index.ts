@@ -2,9 +2,9 @@
 
 import { EPLCCommType } from "./enums"
 import { TPLCModem, TPLCPowerSupply } from "./types"
-import ComponentModule from "../common"
+import Component from "../common"
 
-export class PLCModem extends ComponentModule implements TPLCModem {
+export class PLCModem extends Component implements TPLCModem {
   commType   : EPLCCommType; // UART, Serial, SPI, Ethernet
   target     : string;
   powerSupply: TPLCPowerSupply;

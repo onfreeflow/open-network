@@ -1,7 +1,7 @@
 "use strict"
 
-import CommunicationModule from ".."
-import { TSerialModule } from "./types"
+import Communication from "../"
+import { TSerial} from "./types"
 import {
   EConnectionType,
   EBaudRate,
@@ -9,7 +9,7 @@ import {
   EDataAddress
 } from "./enums"
 
-export class SerialModule extends CommunicationModule implements TSerialModule {
+export class Serial extends Communication implements TSerial{
   type       : EConnectionType
   baudRate   : EBaudRate
   pinCount   : number
@@ -19,4 +19,4 @@ export class SerialModule extends CommunicationModule implements TSerialModule {
       super({serialNumber})
   }
 }
-export default SerialModule
+export default Serial

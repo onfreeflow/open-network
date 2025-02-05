@@ -1,16 +1,16 @@
 "use strict"
 
-import CommunicationModule from ".."
+import Communication from "../"
 import { gigahertz } from "../../common/types"
 import { EHardwareInterface } from "../../common/enums"
-import { TWiFiModule } from "./types"
+import { TWiFi} from "./types"
 import {
   EWifiProtocol,
   EWiFiCertification,
   EWiFiEncryption
 } from "./enums"
 
-export class WiFiModule extends CommunicationModule implements TWiFiModule {
+export class WiFi extends Communication implements TWiFi{
     protocols       : EWifiProtocol[]
     frequencies     : gigahertz[]
     interfaces      : EHardwareInterface[]
@@ -20,4 +20,4 @@ export class WiFiModule extends CommunicationModule implements TWiFiModule {
         super({serialNumber})
     }
 }
-export default WiFiModule
+export default WiFi

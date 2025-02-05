@@ -1,11 +1,11 @@
 "use strict"
 
-import CommunicationModule from ".."
+import Communication from "../"
 import { TCellular } from "./types"
 import { ECellularBand } from "./enums"
 import { EHardwareInterface } from "../../common/enums"
 
-export class Cellular extends CommunicationModule implements TCellular {
+export class Cellular extends Communication implements TCellular {
     hardwareInterface: EHardwareInterface
     bands: ECellularBand[]
     esn: number

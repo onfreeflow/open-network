@@ -1,12 +1,12 @@
 "use strict"
 
-import ComponentModule from "../common"
-import { TCommunicationModule } from "./types"
+import Component from "../common"
+import { TCommunication} from "./types"
 import { meters } from "../common/types"
 import { ECommMode } from "./enums"
 
 
-export class CommunicationModule extends ComponentModule implements TCommunicationModule {
+export class Communication extends Component implements TCommunication{
     MACID    : string
     range    : meters
     frequency: number
@@ -15,4 +15,4 @@ export class CommunicationModule extends ComponentModule implements TCommunicati
     commMode : ECommMode[]
 }
 
-export default CommunicationModule
+export default Communication

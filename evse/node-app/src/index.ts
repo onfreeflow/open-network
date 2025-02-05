@@ -3,15 +3,15 @@ import "./log"
 import { readFileSync, writeFileSync }                from "fs"
 
 import { ECurrentType }                               from "./lib/Component/common/enums"
-import { PowerMeterModule }                           from "./lib/Component/powermeter"
+import { PowerMeter}                           from "./lib/Component/powermeter"
 import { IPowerMeterConfiguration }                   from "./lib/Component/powermeter/interfaces"
 import { OverCurrentRelay, PowerRelay }               from "./lib/Component/relay"
 import { ERelayType, ERelayPosition, ERelayContacts } from "./lib/Component/relay/enums"
 //import { TRelay }                                     from "./lib/Hardware/relay/types"
 import { IRelayConfiguration }                        from "./lib/Component/relay/interfaces"
 import { ESwitchType }                                from "./lib/Component/switch/enums"
-import { TBLEModule }                                 from "./lib/Component/communication/ble/types"
-import { TWiFiModule }                                from "./lib/Component/communication/wifi/types"
+import { TBLE}                                 from "./lib/Component/communication/ble/types"
+import { TWiFi}                                from "./lib/Component/communication/wifi/types"
 import {
   RedLED, GreenLED, MultiColorLED, YellowLEDStrip,
   RedLEDStrip, GreenLEDStrip, MultiColorLEDStrip
@@ -34,8 +34,8 @@ writeFileSync( "device-tree.json", JSON.stringify( deviceTree, null, 2 ) );
 interface ParseDeviceResponse {
   PowerMeters: IPowerMeterConfiguration[],
   Relays     : IRelayConfiguration[],
-  WiFi      ?: TWiFiModule, 
-  BLE       ?: TBLEModule
+  WiFi      ?: TWiFi, 
+  BLE       ?: TBLE
 }
 
 function parseDevices( deviceTree: File ): ParseDeviceResponse {
@@ -100,9 +100,9 @@ const
     }
   },
   powerMeter = {
-    ZERO: new PowerMeterModule(PowerMeters[0]),
-    ONE : new PowerMeterModule(PowerMeters[0]),
-    TWO : new PowerMeterModule(PowerMeters[0])
+    ZERO: new PowerMeter(PowerMeters[0]),
+    ONE : new PowerMeter(PowerMeters[0]),
+    TWO : new PowerMeter(PowerMeters[0])
   },
   relay = {
     ZERO : new OverCurrentRelay(Relays[0]),

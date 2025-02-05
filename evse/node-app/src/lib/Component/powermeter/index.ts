@@ -1,6 +1,6 @@
 "use strict";
 
-import ComponentModule from "../common"
+import Component from "../common"
 import { watts, volts } from "../common/types"
 import { TDisplay } from "../display/types"
 import { TPowerMeter } from "./types"
@@ -12,7 +12,7 @@ const options = {
   indicators:[],
 }
 
-export class PowerMeterModule extends ComponentModule implements TPowerMeter {
+export class PowerMeter extends Component implements TPowerMeter {
   totalizer:watts          = 0
   voltage:volts            = 0
   deciWatts:watts          = 0
@@ -42,4 +42,4 @@ export class PowerMeterModule extends ComponentModule implements TPowerMeter {
   }
 }
 
-export default PowerMeterModule
+export default PowerMeter

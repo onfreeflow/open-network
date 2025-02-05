@@ -2,7 +2,7 @@
 
 import { TLED, TLEDStrip } from "./types"
 import { ELEDPattern } from "./enums"
-import ComponentModule from "../common"
+import Component from "../common"
 import { EColor } from "../common/enums"
 
 function ColoredLED( color:string, resistance:number, pins:number = 2 ){
@@ -13,7 +13,7 @@ function ColoredLED( color:string, resistance:number, pins:number = 2 ){
   }
 }
 
-export class LED extends ComponentModule implements TLED {
+export class LED extends Component implements TLED {
   name;
   description;
   pins = 2;

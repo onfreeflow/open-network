@@ -1,5 +1,5 @@
 "use strict"
 
-import { ICommunicationModule } from "./interfaces"
+import { ICommunication } from "./interfaces"
 
-export type TCommunicationModule = ICommunicationModule
+export type TCommunication = ICommunication

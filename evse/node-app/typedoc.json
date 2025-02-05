@@ -6,5 +6,7 @@
   "hideGenerator": true,
   "githubPages": true,
   "readme": "README.md",
-  "titleLink": "index.html"
+  "titleLink": "index.html",
+  "excludePrivate": false,  
+  "excludeInternal": false
 }

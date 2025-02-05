@@ -3,18 +3,44 @@
 import { EHardwareInterface } from "./enums"
 import { celsius, watts } from "./types"
 
-export interface IComponentModuleConfiguration {
+export interface IComponentConfiguration {
+  /**
+   * Unique serial number for the component.
+   * @example "SN-987654"
+   */
   serialNumber: string | number | symbol
 }
 
-export interface IComponentModule {
-  hardwareInterfaces    ?: EHardwareInterface[]
+export interface IComponent {
+  /**
+   * Unique serial number for the component.
+   * @example "SN-987654"
+   */
   serialNumber           : string | number | symbol
+  /**
+   * Name of the component.
+   * @example "Cooling Fan"
+   */
   name                  ?: string
+  /**
+   * Supported hardware interfaces (e.g., UART, SPI, I2C).
+   */
+  hardwareInterfaces    ?: EHardwareInterface[]
+  /**
+   * Operating temperature range in Celsius.
+   * Represented as `[min, max]`.
+   * @example [-10, 60]
+   */
   operatingTemperature  ?: [ celsius, celsius]
+  /**
+   * Power consumption details in watts.
+   */
   devicePowerConsumption?: {
-    standby  ?: watts,
-    deepSleep?: watts,
-    active   ?: watts
+    /** Standby power consumption (watts). */
+    standby?: watts;
+    /** Deep sleep power consumption (watts). */
+    deepSleep?: watts;
+    /** Active power consumption (watts). */
+    active?: watts;
   }
 }

@@ -1,3 +1,3 @@
-import { IWiFiModule } from "./interfaces"
+import { IWiFi} from "./interfaces"
 
-export type TWiFiModule = IWiFiModule
+export type TWiFi= IWiFi

@@ -9,13 +9,13 @@ import { TLED } from "../Component/led/types"
 import { TPowerMeter } from "../Component/powermeter/types"
 import { TPowerRelay, TConnectorRelay, TOverloadProtectionRelay } from "../Component/relay/types"
 
-import { TSerialModule } from "../Component/communication/serial/types"
-import { TBLEModule } from "../Component/communication/ble/types"
-import { TRFIDModule } from "../Component/communication/rfid/types"
-import { TNFCModule } from "../Component/communication/nfc/types"
-import { TLoRaModule } from "../Component/communication/lora/types"
-import { TWiFiModule } from "../Component/communication/wifi/types"
-import { TRJ45Module } from "../Component/communication/rj45/types"
+import { TSerial} from "../Component/communication/serial/types"
+import { TBLE} from "../Component/communication/ble/types"
+import { TRFID} from "../Component/communication/rfid/types"
+import { TNFC} from "../Component/communication/nfc/types"
+import { TLoRa} from "../Component/communication/lora/types"
+import { TWiFi} from "../Component/communication/wifi/types"
+import { TRJ45} from "../Component/communication/rj45/types"
 import { TCellular } from "../Component/communication/cellular/types"
 
 import {
@@ -110,13 +110,13 @@ export interface IComponentModules {
   connectorRelays         : TConnectorRelay[],
   overloadProtectionRelays: TOverloadProtectionRelay[],
   communications          : {
-    serial  ?: TSerialModule[],   //RS232, RS485, USB(A/B/C)
-    ble     ?: TBLEModule[],
-    rfid    ?: TRFIDModule[],
-    nfc     ?: TNFCModule[],
-    lora    ?: TLoRaModule[],
-    wifi    ?: TWiFiModule[],
-    rj45    ?: TRJ45Module[],
+    serial  ?: TSerial[],   //RS232, RS485, USB(A/B/C)
+    ble     ?: TBLE[],
+    rfid    ?: TRFID[],
+    nfc     ?: TNFC[],
+    lora    ?: TLoRa[],
+    wifi    ?: TWiFi[],
+    rj45    ?: TRJ45[],
     cellular?: TCellular[]
   }
 }

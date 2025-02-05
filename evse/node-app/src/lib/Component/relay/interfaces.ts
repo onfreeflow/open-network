@@ -1,7 +1,7 @@
 "use strict"
 
-import { TComponentModule} from "../common/types"
-import { IComponentModule } from "../common/interfaces"
+import { TComponent } from "../common/types"
+import { IComponent} from "../common/interfaces"
 import { ECurrentType } from "../common/enums"
 import { ESwitchType } from "../switch/enums"
 import { ERelayContacts, ERelayPosition, ERelayType } from "./enums"
@@ -10,7 +10,7 @@ export interface IRelayStatusResponse {
   position: ERelayPosition
 }
 
-export interface IRelay extends TComponentModule {
+export interface IRelay extends TComponent{
   path           : string
   type           : ERelayType      
   switchType     : ESwitchType     
@@ -26,7 +26,7 @@ export interface IRelay extends TComponentModule {
   status()       : IRelayStatusResponse
 }
 
-export interface IRelayConfiguration extends IComponentModule {
+export interface IRelayConfiguration extends IComponent{
   type           : ERelayType
   switchType     : ESwitchType
   contacts       : ERelayContacts[]

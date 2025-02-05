@@ -1,6 +1,6 @@
 "use strict"
 
-import { TComponentModule } from "../../common/types"
+import { TComponent} from "../../common/types"
 import {
   EBaudRate,
   EConnectionType,
@@ -8,7 +8,7 @@ import {
   EDataFormat
 } from "./enums"
 
-export interface ISerialModule extends TComponentModule {
+export interface ISerial extends TComponent{
   type       : EConnectionType,
   baudRate   : EBaudRate,
   pinCount   : number,

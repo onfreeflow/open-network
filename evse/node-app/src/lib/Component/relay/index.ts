@@ -1,6 +1,6 @@
 "use strict"
 
-import ComponentModule from "../common"
+import Component from "../common"
 import { ECurrentType } from "../common/enums"
 import { ESwitchType } from "../switch/enums"
 import { ERelayContacts, ERelayPosition, ERelayType } from "./enums"
@@ -8,7 +8,7 @@ import { IRelay, IRelayConfiguration } from "./interfaces"
 
 import { sendSerialCommand } from "../../utils"
 
-export class Relay extends ComponentModule implements IRelay {
+export class Relay extends Component implements IRelay {
   path           : string
   type           : ERelayType
   switchType     : ESwitchType

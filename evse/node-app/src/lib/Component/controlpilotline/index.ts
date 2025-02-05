@@ -3,9 +3,9 @@
 import { EControlPilotLineState } from "./enums"
 import { TControlPilotLine }      from "./types"
 import { volts }                  from "../common/types"
-import ComponentModule             from "../common"
+import Component            from "../common"
 
-export class ControlPilotLine extends ComponentModule implements TControlPilotLine {
+export class ControlPilotLine extends Component implements TControlPilotLine {
   voltage   : volts;
   MACAddress: string;
   state     : EControlPilotLineState;

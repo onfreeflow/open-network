@@ -1,8 +1,8 @@
 "use strict"
-import { IComponentModule } from "./interfaces"
+import { IComponent} from "./interfaces"
 
 
-export type TComponentModule = IComponentModule & {
+export type TComponent= IComponent& {
   getSerialNumber():string|number
 }
 

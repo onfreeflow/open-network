@@ -1,11 +1,11 @@
 "use strict"
 
-import CommunicationModule from ".."
-import { TZigBeeModule } from "./types"
+import Communication from "../"
+import { TZigBee} from "./types"
 
-export class ZigBeeModule extends CommunicationModule implements TZigBeeModule {
+export class ZigBee extends Communication implements TZigBee{
     constructor({serialNumber}:{serialNumber:string|number|symbol}){
         super({serialNumber})
     }
 }
-export default ZigBeeModule
+export default ZigBee

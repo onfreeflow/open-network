@@ -1,12 +1,9 @@
 "use strict"
 
-import CommunicationModule from ".."
-import { TBLEModule } from "./types"
-import { meters } from "../../common/types"
-import { ECommMode } from "../enums"
+import Communication from "../"
+import { TBLE } from "./types"
 
-
-export class BLEModule extends CommunicationModule implements TBLEModule {
+export class BLE extends Communication implements TBLE {
   constructor({serialNumber}:{serialNumber:string|number|symbol}){
     super({serialNumber})
   } 

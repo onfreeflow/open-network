@@ -1,9 +1,9 @@
 "use strict"
 
-import CommunicationModule from ".."
-import { TRJ45Module } from "./types"
+import Communication from "../"
+import { TRJ45} from "./types"
 
-export class RFIDModule extends CommunicationModule implements TRJ45Module {
+export class RFID extends Communication implements TRJ45{
     constructor({serialNumber}:{serialNumber:string|number|symbol}){
         super({serialNumber})
     }
