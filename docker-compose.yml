@@ -55,22 +55,22 @@ services:
       ezcharge:
         ipv4_address: 172.20.0.23
 
-  steve:
-    restart: unless-stopped
-    build:
-      context: ./steve
-    volumes:
-      - ./steve:/code
-    ports:
-      - "8180:8180"
-      - "8444:8443"
-    depends_on:
-      - mariadb
-    extra_hosts:
-      - "mariadb:172.20.0.23"
-    networks:
-      ezcharge:
-        ipv4_address: 172.20.0.21
+  # steve:
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./steve
+  #   volumes:
+  #     - ./steve:/code
+  #   ports:
+  #     - "8180:8180"
+  #     - "8444:8443"
+  #   depends_on:
+  #     - mariadb
+  #   extra_hosts:
+  #     - "mariadb:172.20.0.23"
+  #   networks:
+  #     ezcharge:
+  #       ipv4_address: 172.20.0.21
 
   ocpp-service-1:
     build:

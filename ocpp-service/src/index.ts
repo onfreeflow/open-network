@@ -44,9 +44,9 @@ const queryNeo4j = async ( query:string, options?) => {
         accept( { sessionId, serialNumber: handshake.identity } )
         //-- setup connection in neo4j
         const now = new Date().getTime()
-        console.log( "sessionId: ", sessionId )
-        console.log( "serialNumber: ", handshake.identity)
-        console.log( "hostname: ", process.env.HOSTNAME )
+        // console.log( "sessionId: ", sessionId )
+        // console.log( "serialNumber: ", handshake.identity)
+        // console.log( "hostname: ", process.env.HOSTNAME )
 
         await queryNeo4j(`
             MATCH (o:ocppService {hostname: $hostname}), (e:evse { serialNumber: $serialNumber })
@@ -128,10 +128,10 @@ const queryNeo4j = async ( query:string, options?) => {
             console.log( "Disconnect: ", ...args )
         })
         client.on( "close", async ( ...args ) => {
-            console.log( "Close: ", ...args )
-            console.log( "hostname:", process.env.HOSTNAME )
-            console.log( "sessionId:", client.session.sessionId )
-            console.log( "serialNumber:", client.identity )
+            // console.log( "Close: ", ...args )
+            // console.log( "hostname:", process.env.HOSTNAME )
+            // console.log( "sessionId:", client.session.sessionId )
+            // console.log( "serialNumber:", client.identity )
             await queryNeo4j(`
                     MATCH (o:ocppService {hostname: $hostname})<-[r:CONNECTED_TO {sessionId: $sessionId}]-(e:evse {serialNumber: $serialNumber}) DELETE r`,
                     {
