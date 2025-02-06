@@ -149,6 +149,7 @@ export class EVSE extends Base implements TEVSE {
   //#wanTransports: WANTransport[]
   constructor( options:IEVSEOptions ){
     super()
+    console.log("Init EVSE")
     validateOptions( options )
     this.id = options.id
     this.serialNumber = options.serialNumber;
@@ -181,8 +182,11 @@ export class EVSE extends Base implements TEVSE {
     }
     return (async ()=> {
       try {
+        console.log( "Run startup events" )
         await this.#setupEventsQueue()
+        console.log( "Start up")
         this.#startUp()
+        console.log( "Connect to central system service")
         await this.#connectToCentralSystem()
       } catch ( warn ) {
         console.warn( warn )
@@ -236,6 +240,7 @@ export class EVSE extends Base implements TEVSE {
       if ( !transport ) {
         throw new Error( "No transport on extracted transport from #OCPPTransports")
       }
+      console.log( "Transport Connect" )
       await transport.connect()
       await this.#listenToOCPPTransport( transport )
     }

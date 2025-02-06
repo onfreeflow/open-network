@@ -9,27 +9,58 @@ import neo4j from "neo4j-driver"
 import { RPCServer, createRPCError } from "ocpp-rpc"
 import { v4 as uuidv4 } from "uuid"
 
+const neo4JDriver = neo4j.driver( "neo4j://neo4j:7687", neo4j.auth.basic( "neo4j", "password" ) );
+const queryNeo4j = async ( query:string, options?) => {
+    const session = neo4JDriver.session()
+    try {
+        return await session.run( query, options )
+    } catch ( e ) {
+      console.error( e )
+    } finally {
+      await session.close()
+    }
+}
+
 (async ()=>{
     const serviceUUID = uuidv4()
-    const neo4JDriver = neo4j.driver( "neo4j://neo4j:7687", neo4j.auth.basic( "neo4j", "password" ) );
     const server = new RPCServer({
         protocols: [ 'ocpp1.6','ocpp2.0.1' ],
         strictMode: true,
         pingIntervalMs: 400000,
         respondWithDetailedErrors: true
     })
-    server.auth((accept, reject, handshake) => {
-        console.log(`Authing [${handshake.identity}]`)
+    server.auth(async (accept, reject, handshake) => {
+        console.log( `Authing [${handshake.identity}]` )
         const tlsClient = handshake.request.client;
 
         if (!tlsClient) {
-            return reject(0,"tls Failure");
+            return reject( 0, "tls Failure" )
         }
         //dblookup, identity(evse_SN, evse_pass->evse_pass_hash)
 
         // accept the incoming client
         // anything passed to accept() will be attached as a 'session' property of the client.
-        accept( { sessionId: uuidv4() } )
+        const sessionId = uuidv4()
+        accept( { sessionId, serialNumber: handshake.identity } )
+        //-- setup connection in neo4j
+        const now = new Date().getTime()
+        console.log( "sessionId: ", sessionId )
+        console.log( "serialNumber: ", handshake.identity)
+        console.log( "hostname: ", process.env.HOSTNAME )
+
+        await queryNeo4j(`
+            MATCH (o:ocppService {hostname: $hostname}), (e:evse { serialNumber: $serialNumber })
+            MERGE (o)<-[r:CONNECTED_TO]-(e)
+            ON CREATE SET r.sessionId = $sessionId, r.createdDate = $createdDate, r.updatedDate = $updatedDate
+            RETURN o, e;`,
+            {
+                sessionId,
+                serialNumber: handshake.identity,
+                hostname    : process.env.HOSTNAME,
+                createdDate : now,
+                updatedDate : now
+            }
+        )
     });
 
     server.on('client', async (client) => {
@@ -96,8 +127,20 @@ import { v4 as uuidv4 } from "uuid"
         client.on( "disconnect", ( ...args ) => {
             console.log( "Disconnect: ", ...args )
         })
-        client.on( "close", ( ...args ) => {
+        client.on( "close", async ( ...args ) => {
             console.log( "Close: ", ...args )
+            console.log( "hostname:", process.env.HOSTNAME )
+            console.log( "sessionId:", client.session.sessionId )
+            console.log( "serialNumber:", client.identity )
+            await queryNeo4j(`
+                    MATCH (o:ocppService {hostname: $hostname})<-[r:CONNECTED_TO {sessionId: $sessionId}]-(e:evse {serialNumber: $serialNumber}) DELETE r`,
+                    {
+                        hostname    : process.env.HOSTNAME,
+                        sessionId   : client.session.sessionId,
+                        serialNumber: client.identity
+                    }
+                )
+            //remove neo4j connection
         })
     })
 
@@ -128,31 +171,23 @@ import { v4 as uuidv4 } from "uuid"
     })
     httpsServer.listen( process.env.PORT, async () => {
         console.log("listenting on: ", process.env.PORT )
-        const session = neo4JDriver.session()
         const now = new Date().getTime()
-        try {
-            await session.run(`
-                MERGE (o:ocppService {hostname:$hostname})
-                ON CREATE SET   o.uuid = $serviceUUID,
-                                o.createdDate = $createdDate,
-                                o.updatedDate = $updatedDate,
-                                o.cert = $cert
-                ON MATCH SET    o.updatedDate = $updatedDate,
-                                o.cert = $cert
-                `,
-                {
-                    serviceUUID,
-                    hostname   : process.env.HOSTNAME,
-                    createdDate: now,
-                    updatedDate: now,
-                    cert
-                }
-            )
-        } catch ( e ) {
-            console.error( e )
-        } finally {
-            await session.close()
-        }
+        await queryNeo4j(`
+            MERGE (o:ocppService {hostname:$hostname})
+            ON CREATE SET   o.uuid = $serviceUUID,
+                            o.createdDate = $createdDate,
+                            o.updatedDate = $updatedDate,
+                            o.cert = $cert
+            ON MATCH SET    o.updatedDate = $updatedDate,
+                            o.cert = $cert;`,
+            {
+                cert,
+                serviceUUID,
+                hostname   : process.env.HOSTNAME,
+                createdDate: now,
+                updatedDate: now,
+            }
+        )
     })
     httpsServer.on( 'error', ( err ) => console.log( "error", err ) );
     httpsServer.on( 'upgrade', server.handleUpgrade );
@@ -161,18 +196,11 @@ import { v4 as uuidv4 } from "uuid"
     const signals = [ "SIGINT", "SIGTERM", "SIGUSR2", "exit" ]
     signals.forEach( signal => processEmitter.once( signal, () => processEmitter.emit( "processKill", signal ) ) )
     processEmitter.on("processKill", async () => {
-        const session = neo4JDriver.session();
-        try{
-            await session.run(`
-                MATCH (o:ocppService {uuid:$serviceUUID})
-                DETACH DELETE o 
-                `,
-                { serviceUUID }
-            )
-        } catch ( e ) {
-            console.error( e )
-        } finally {
-            await session.close()
-        }
+        await queryNeo4j(`
+            MATCH (o:ocppService {uuid:$serviceUUID})
+            DETACH DELETE o 
+            `,
+            { serviceUUID }
+        )
     })
 })()

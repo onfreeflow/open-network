@@ -46,9 +46,6 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
         ...options.centralSystemService.reconnect
       }
     }
-
-    // Now `mergedOptions` has `path` and `protocol` with default values if they weren’t provided
-    // console.log('Connecting to:', mergedOptions);
   }
   async connect(): Promise<void> {
     const { host, port, path, protocol, tls }:ICentralSystemService = this.centralSystemService
@@ -74,7 +71,7 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
         this.#linkError = undefined
         resolve()
       }
-      console.log(`ws://${host}:${port}${path}`)
+      console.log(`wss://${host}:${port}${path}`)
       const connectOptions = {
         host, port
       }, tlsConnectOptions = {
@@ -95,7 +92,7 @@ export class OCPPTransport extends EventsObject implements IOCPPTransport {
           event = JSON.parse( frameData as string )
         } catch( e ) {
           // TODO: clean up non-text frames
-          //console.warn( e )
+          // console.warn( e )
           // event = frameData
         }
         this.emit( "OCPP_EVENT", event )

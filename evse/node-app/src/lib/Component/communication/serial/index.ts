@@ -1,6 +1,6 @@
 "use strict"
 
-import Communication from "../"
+import Communication from "../core"
 import { TSerial} from "./types"
 import {
   EConnectionType,

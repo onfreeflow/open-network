@@ -1,6 +1,6 @@
 "use strict"
 
-import Communication from "../"
+import Communication from "../core"
 import { TRJ45} from "./types"
 
 export class RFID extends Communication implements TRJ45{

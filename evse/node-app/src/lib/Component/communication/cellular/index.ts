@@ -1,6 +1,6 @@
 "use strict"
 
-import Communication from "../"
+import Communication from "../core"
 import { TCellular } from "./types"
 import { ECellularBand } from "./enums"
 import { EHardwareInterface } from "../../common/enums"

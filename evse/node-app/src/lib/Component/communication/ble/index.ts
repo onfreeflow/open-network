@@ -1,6 +1,6 @@
 "use strict"
 
-import Communication from "../"
+import Communication from "../core"
 import { TBLE } from "./types"
 
 export class BLE extends Communication implements TBLE {

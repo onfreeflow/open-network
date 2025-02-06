@@ -25,9 +25,9 @@ export interface IEnvelope {
 export interface ITLSConfiguration {
   enabled   ?: boolean,
   minVersion?: ETLSVersions,
-  ca        ?: string | Buffer<ArrayBufferLike> | undefined,
-  key       ?: Array<Readable> | Readable | undefined,
-  cert      ?: Array<Readable> | Readable | undefined 
+  ca        ?: string | Array<string> | Buffer<ArrayBufferLike> | undefined,
+  key       ?: string | Array<string> | Array<Readable> | Readable | undefined,
+  cert      ?: string | Array<string> | Array<Readable> | Readable | undefined 
 }
 export interface IFTPConfiguration {
   protocol?: EFTPProtocol;

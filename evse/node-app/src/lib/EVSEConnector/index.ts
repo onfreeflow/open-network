@@ -58,6 +58,7 @@ export class EVSEConnector extends Base implements TEVSEConnector {
 
   constructor( configuration:IEVSEConnectorOptions ) {
     super()
+    console.log("init connector")
     Object.assign( this, configuration )
     this.controlPilotLine.on( "plcStateUpdated", async ( newState:EControlPilotLineState) => {
       switch( newState ) {

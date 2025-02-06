@@ -1,6 +1,6 @@
 "use strict"
 
-import Communication from "../"
+import Communication from "../core"
 import { gigahertz } from "../../common/types"
 import { EHardwareInterface } from "../../common/enums"
 import { TWiFi} from "./types"

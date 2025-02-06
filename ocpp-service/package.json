@@ -1,6 +1,6 @@
 {
-  "name": "life.ho2.ocpp",
-  "version": "1.0.0",
+  "name": "life.ho2.ezcharge.ocpp-service",
+  "version": "0.2.0",
   "description": "HO2 LIFE - OCPP Server",
   "author": "eric.hodonsky@gmail.com",
   "license": "ISC",

@@ -56,8 +56,6 @@ export const parseWebSocketFrame = (frame: Buffer):string|void => {
   if (isMasked) {
     mask = frame.slice(offset, offset + 4); // Read the 4-byte mask
     offset += 4;
-  } else {
-    throw new Error( "Envelope masking failed" )
   }
 
   const payload = Buffer.alloc(payloadLength);

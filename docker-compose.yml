@@ -83,6 +83,9 @@ services:
      - PORT=6907
      - IP=172.20.0.4
      - HOSTNAME=ocpp-service-1
+    volumes:
+     - ./ocpp-service/src:/usr/src/app/src
+     - ./ocpp-service/package.json:/usr/src/app/package.json
     restart: on-failure
     depends_on:
      - neo4j
@@ -111,6 +114,7 @@ services:
       - "steve:172.20.0.21"
     volumes:
      - ./evse/node-app/src:/usr/src/app/src
+     - ./evse/node-app/package.json:/usr/src/app/package.json
     networks:
       ezcharge:
         ipv4_address: 172.20.0.9

@@ -1,6 +1,6 @@
 "use strict"
 
-import Communication from "../"
+import Communication from "../core"
 import { TZigBee} from "./types"
 
 export class ZigBee extends Communication implements TZigBee{

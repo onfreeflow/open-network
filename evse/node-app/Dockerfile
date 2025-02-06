@@ -1,4 +1,4 @@
-FROM node
+FROM node:22.13.1
 
 ARG EXPOSE_PORT
 
@@ -14,7 +14,7 @@ RUN chmod 644 /usr/local/share/ca-certificates/*.crt && \
 RUN mkdir /usr/src/app
 WORKDIR /usr/src/app
 
-ADD ./pilot-charger /usr/src/app
+ADD ./evse/node-app /usr/src/app
 RUN npm i
 
 ENV NODE_ENV=local

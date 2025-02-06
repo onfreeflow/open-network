@@ -1,7 +1,7 @@
 "use strict"
 import { gigahertz } from "../../common/types"
 import { EHardwareInterface } from "../../common/enums"
-import { TCommunication } from "../types"
+import { TCommunication } from "../core/types"
 
 import { EWiFiCertification, EWiFiEncryption, EWifiProtocol } from "./enums"
 
