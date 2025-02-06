@@ -14,3 +14,5 @@ evse/node-app/docs
 evse/node-app/docs/*
 
 evse-resources.wiki/
+.terraform/
+terraform.tfstate.backup
