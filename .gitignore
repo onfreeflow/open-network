@@ -1,18 +1,4 @@
 .DS_Store
 
-node_modules/*
-**/node_modules
-
-build/*
-**/build
-
-*/steve
-steve/*
-steve
-
-evse/node-app/docs
-evse/node-app/docs/*
-
-evse-resources.wiki/
 .terraform/
 terraform.tfstate.backup

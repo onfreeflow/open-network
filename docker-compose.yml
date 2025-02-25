@@ -1,21 +1,4 @@
 services:
-  nginx:
-    build:
-      context: ./nginx
-    ports:
-      - "8443:8443"
-    environment:
-     - NEO4J_HOST=neo4j
-     - NEO4J_PORT=7474
-     - NEO4J_USERNAME=neo4j
-     - NEO4J_PASSWORD=password
-    depends_on:
-      - neo4j
-    volumes:
-      - ./nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
-    networks:
-      ezcharge:
-        ipv4_address: 172.20.0.5
   neo4j:
     image: neo4j:5
     ports:
@@ -40,21 +23,34 @@ services:
         neo4j stop &&  # Stop the background Neo4j instance
         /startup/docker-entrypoint.sh neo4j
       "
-
+  nginx:
+    build:
+      context: https://github.com/hodonsky/ocpp-broker.git#dev
+      dockerfile: Dockerfile
+    ports:
+      - "8443:8443"
+    environment:
+     - NEO4J_HOST=neo4j
+     - NEO4J_PORT=7474
+     - NEO4J_USERNAME=neo4j
+     - NEO4J_PASSWORD=password
+    depends_on:
+      - neo4j
+    networks:
+      ezcharge:
+        ipv4_address: 172.20.0.5
   ocpp-service-1:
     build:
       args:
         - EXPOSE_PORT=6907
-      context: ./ocpp-service
+      context: https://github.com/hodonsky/ocpp-service.git#dev
+      dockerfile: Dockerfile
     ports:
       - "6907"
     environment:
      - PORT=6907
      - IP=172.20.0.4
      - HOSTNAME=ocpp-service-1
-    volumes:
-     - ./ocpp-service/src:/usr/src/app/src
-     - ./ocpp-service/package.json:/usr/src/app/package.json
     restart: on-failure
     depends_on:
      - neo4j
@@ -66,8 +62,8 @@ services:
     build:
       args:
         - EXPOSE_PORT=8080
-      context: ./
-      dockerfile: ./evse/node-app/Dockerfile
+      context: https://github.com/hodonsky/evse-app#dev
+      dockerfile: Dockerfile
     ports:
      - "8080:8080"
     environment:
@@ -81,9 +77,6 @@ services:
     extra_hosts:
       - "nginx:172.20.0.5"
       - "steve:172.20.0.21"
-    volumes:
-     - ./evse/node-app/src:/usr/src/app/src
-     - ./evse/node-app/package.json:/usr/src/app/package.json
     networks:
       ezcharge:
         ipv4_address: 172.20.0.9
