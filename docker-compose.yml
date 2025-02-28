@@ -9,10 +9,9 @@ services:
       - MQ_USERNAME=defaultAdmin
       - MQ_PASSWORD=SomePassword
       - MQ_QUEUE=consumerTopic
+      - PORT=8080
     ports:
      - "8080:8080"
-    environment:
-     - PORT: "8080"
 
   service-auth:
     build:
@@ -62,7 +61,7 @@ services:
      - .scripts/neo4j/import:/var/lib/neo4j/import
     restart: on-failure
     networks:
-      - ezcharge
+      - opennetwork
     command: >
       bash -c "
         /startup/docker-entrypoint.sh neo4j &  # Start Neo4j with the default entrypoint script
@@ -88,26 +87,27 @@ services:
     depends_on:
       - neo4j
     networks:
-      ezcharge:
-        ipv4_address: 172.20.0.5
+      opennetwork:
+        ipv4_address: 172.15.0.5
   ocpp-service-1:
     build:
       args:
         - EXPOSE_PORT=6907
-      context: https://github.com/hodonsky/ocpp-service.git#dev
+      # context: https://github.com/hodonsky/ocpp-service.git#dev
+      context: ../ocpp-service
       dockerfile: Dockerfile
     ports:
       - "6907"
     environment:
      - PORT=6907
-     - IP=172.20.0.4
+     - IP=172.15.0.4
      - HOSTNAME=ocpp-service-1
     restart: on-failure
-    depends_on:
-     - neo4j
+    # depends_on:
+    #  - neo4j
     networks:
-      ezcharge:
-        ipv4_address: 172.20.0.4
+      opennetwork:
+        ipv4_address: 172.15.0.4
 
   pilot-charger:
     build:
@@ -126,18 +126,18 @@ services:
      - OCPP_PATH=/evse/connect
      - PROTOCOL=wss
     extra_hosts:
-      - "nginx:172.20.0.5"
-      - "steve:172.20.0.21"
+      - "nginx:172.15.0.5"
+      - "steve:172.15.0.21"
     networks:
-      ezcharge:
-        ipv4_address: 172.20.0.9
+      opennetwork:
+        ipv4_address: 172.15.0.9
 
 networks:
-  ezcharge:
+  opennetwork:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.15.0.0/16
 volumes:
   db-data:
     external: false

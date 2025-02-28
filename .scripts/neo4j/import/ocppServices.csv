@@ -1,6 +1,6 @@
-ocppServiceId,hostname,evseId
-OS1,ocpp-service-1,EV1
-OS1,ocpp-service-1,EV2
-OS2,ocpp-service-2,EV3
-OS3,ocpp-service-3,EV4
-OS3,ocpp-service-3,EV5
+ocppServiceId,hostname,wsport,httpport,evseId
+OS1,ocpp-service-1,6907,8181,EV1
+OS1,ocpp-service-1,6907,8181,EV2
+OS2,ocpp-service-2,6907,8181,EV3
+OS3,ocpp-service-3,6907,8181,EV4
+OS3,ocpp-service-3,6907,8181,EV5
