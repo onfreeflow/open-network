@@ -1,36 +1,82 @@
+x-mq-env: &mq-env
+  MQ_PROTOCOL: amqp
+  MQ_HOSTNAME: rabbitmq
+  MQ_PORT: 5672
+  MQ_USERNAME: defaultAdmin
+  MQ_PASSWORD: SomePassword
+x-networkdb-env: &networkdb-env
+  NETWORK_DB_PROTOCOL: neo4j
+  NETWORK_DB_HOSTNAME: networkdb
+  NETWORK_DB_PORT: 7474
+  NETWORK_DB_USERNAME: neo4j
+  NETWORK_DB_PASSWORD: password
+x-eventsdb-env: &eventsdb-env
+  EVENTS_DB_PROTOCOL: https
+  EVENTS_DB_HOSTNAME: eventsdb
+  EVENTS_DB_PORT: 9200
+  EVENTS_DB_USERNAME: es_user
+  EVENTS_DB_PASSWORD: es_password
+  EVENTS_DB_INDEX: EventsLog
+
 services:
   gateway:
     build:
       context: ./gateway
     environment:
-      - MQ_PROTOCOL=amqp
-      - MQ_HOSTNAME=rabbitmq
-      - MQ_PORT=5672
-      - MQ_USERNAME=defaultAdmin
-      - MQ_PASSWORD=SomePassword
-      - MQ_QUEUE=consumerTopic
-      - PORT=8080
+      <<: *mq-env
+      PORT: 8080
     ports:
      - "8080:8080"
-
+    restart: on-failure 
   service-auth:
     build:
       context: ./service-auth
     environment:
-      - MQ_PROTOCOL=amqp
-      - MQ_HOSTNAME=rabbitmq
-      - MQ_PORT=5672
-      - MQ_USERNAME=defaultAdmin
-      - MQ_PASSWORD=SomePassword
-      - MQ_QUEUE=consumerTopic
+      <<: *mq-env
+      MQ_QUEUE: auth
+    depends_on:
+      - rabbitmq
+    restart: on-failure
+  service-analytics:
+    build:
+      context: ./service-analytics
+    environment:
+      MQ_QUEUE: analytics
+      <<:
+        - *mq-env
+        - *eventsdb-env
+    depends_on:
+      - rabbitmq
+      - eventsdb
+    restart: on-failure
+  service-billing:
+    build:
+      context: ./service-billing
+    environment:
+      <<: *mq-env
+      MQ_QUEUE: billing
+    depends_on:
+      - rabbitmq
+    restart: on-failure
+  service-payments:
+    build:
+      context: ./service-payments
+    environment:
+      <<: *mq-env
+      MQ_QUEUE: payments
+    depends_on:
+      - rabbitmq
+    restart: on-failure
+  service-ocpp:
+    build:
+      context: ./service-ocpp
+    environment:
+      <<: *mq-env
+      MQ_QUEUE: ocpp
     depends_on:
       - rabbitmq
     restart: on-failure
 
-  #service-analytics:
-  #service-billing:
-  #service-payments:
-  
   rabbitmq:
     image: rabbitmq:management
     ports:
@@ -39,17 +85,44 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: defaultAdmin
       RABBITMQ_DEFAULT_PASS: SomePassword
-    restart: always   
-  dynamodb:
-    image: instructure/dynamo-local-admin
-    ports:
-     - "8000:8000"
-     - "8001:8001"
     restart: always
 
-  #elasticsearch:
+  authdb:
+    image: amazon/dynamodb-local
+    container_name: authdb
+    command: [ "-jar", "DynamoDBLocal.jar", "-sharedDb" ]
+    ports:
+     - "8000:8000"
+    networks:
+     - opennetwork
+    restart: always
+  authdb-admin:
+    image: instructure/dynamo-local-admin
+    container_name: authdb-admin
+    environment:
+      - DYNAMO_ENDPOINT=http:authdb:8000
+    ports:
+     - "8001:8001"
+    networks:
+     - opennetwork
+    restart: always
 
-  neo4j:
+  eventsdb:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+    container_name: eventsdb
+    environment:
+      - discovery.type=single-node
+      - ELASTIC_USERNAME=es_user
+      - ELASTIC_PASSWORD=es_password
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=false  # Disable SSL for local use
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+     - opennetwork
+
+  networkdb:
     image: neo4j:5
     ports:
      - "7474:7474"
@@ -73,43 +146,48 @@ services:
         neo4j stop &&  # Stop the background Neo4j instance
         /startup/docker-entrypoint.sh neo4j
       "
-  nginx:
+
+  ocpp-broker:
     build:
-      context: https://github.com/hodonsky/ocpp-broker.git#dev
+      context: ../ocpp-broker
       dockerfile: Dockerfile
     ports:
       - "8443:8443"
     environment:
-     - NEO4J_HOST=neo4j
-     - NEO4J_PORT=7474
-     - NEO4J_USERNAME=neo4j
-     - NEO4J_PASSWORD=password
+      <<: *networkdb-env
     depends_on:
-      - neo4j
+      - networkdb
     networks:
       opennetwork:
         ipv4_address: 172.15.0.5
   ocpp-service-1:
     build:
       args:
-        - EXPOSE_PORT=6907
+        - OCPP_PORT=6907
+        - HTTP_PORT=8181
       # context: https://github.com/hodonsky/ocpp-service.git#dev
       context: ../ocpp-service
       dockerfile: Dockerfile
     ports:
       - "6907"
+      - "8181"
     environment:
-     - PORT=6907
-     - IP=172.15.0.4
-     - HOSTNAME=ocpp-service-1
-    restart: on-failure
-    # depends_on:
-    #  - neo4j
+      PORT: 6907
+      IP: 172.15.0.4
+      HTTP_PORT: 8181
+      HOSTNAME: ocpp-service-1
+      <<:
+       - *eventsdb-env
+       - *networkdb-env
+    #restart: on-failure
+    depends_on:
+     - networkdb
+     - eventsdb
     networks:
       opennetwork:
         ipv4_address: 172.15.0.4
 
-  pilot-charger:
+  evse-1:
     build:
       args:
         - EXPOSE_PORT=8180
@@ -121,13 +199,13 @@ services:
      - PORT=8180
      - NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/nginx.crt
      - HEARTBEAT_TIMEOUT=30000
-     - OCPP_HOST=nginx
+     - OCPP_HOST=ocpp-broker
      - OCPP_PORT=8443
      - OCPP_PATH=/evse/connect
      - PROTOCOL=wss
     extra_hosts:
       - "nginx:172.15.0.5"
-      - "steve:172.15.0.21"
+      # - "steve:172.15.0.21"
     networks:
       opennetwork:
         ipv4_address: 172.15.0.9
