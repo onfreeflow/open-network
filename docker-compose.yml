@@ -7,16 +7,17 @@ x-mq-env: &mq-env
 x-networkdb-env: &networkdb-env
   NETWORK_DB_PROTOCOL: neo4j
   NETWORK_DB_HOSTNAME: networkdb
-  NETWORK_DB_PORT: 7474
+  NETWORK_DB_HTTP_PORT: 7474
+  NETWORK_DB_BOLT_PORT: 7687
   NETWORK_DB_USERNAME: neo4j
   NETWORK_DB_PASSWORD: password
 x-eventsdb-env: &eventsdb-env
   EVENTS_DB_PROTOCOL: https
   EVENTS_DB_HOSTNAME: eventsdb
   EVENTS_DB_PORT: 9200
-  EVENTS_DB_USERNAME: es_user
+  EVENTS_DB_USERNAME: elastic
   EVENTS_DB_PASSWORD: es_password
-  EVENTS_DB_INDEX: EventsLog
+  EVENTS_DB_INDEX: eventslog
 
 services:
   gateway:
@@ -112,7 +113,7 @@ services:
     container_name: eventsdb
     environment:
       - discovery.type=single-node
-      - ELASTIC_USERNAME=es_user
+      - ELASTIC_USERNAME=elastic
       - ELASTIC_PASSWORD=es_password
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=false  # Disable SSL for local use
@@ -180,6 +181,9 @@ services:
        - *eventsdb-env
        - *networkdb-env
     #restart: on-failure
+    volumes:  
+     - ../ocpp-service/bin:/usr/src/app/bin
+     - ../ocpp-service/src:/usr/src/app/src
     depends_on:
      - networkdb
      - eventsdb
