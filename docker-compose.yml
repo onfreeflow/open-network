@@ -68,7 +68,7 @@ services:
     depends_on:
       - rabbitmq
     restart: on-failure
-  service-ocpp:
+  service-chargers:
     build:
       context: ./service-ocpp
     environment:
