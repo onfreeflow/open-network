@@ -6,3 +6,5 @@ node_modules
 terraform.tfstate.backup
 
 .colima/
+
+certs/*
